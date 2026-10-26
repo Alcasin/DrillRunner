@@ -217,6 +217,37 @@ Transform:
   - {fileID: 6903148415448582168}
   m_Father: {fileID: 771999805996901988}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1774144038690081630
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2305893892031020690}
+  m_Layer: 0
+  m_Name: Drill Contact Tip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2305893892031020690
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1774144038690081630}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.65, z: 1.85}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 771999805996901988}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2380105415910436375
 GameObject:
   m_ObjectHideFlags: 0
@@ -340,6 +371,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5559314859492899707}
+  - {fileID: 2305893892031020690}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &5960286660687537504
@@ -366,6 +398,16 @@ MonoBehaviour:
     TrackCenterX: 0
     SteeringWorldUnitsPerScreenWidth: 8
     SteeringResponse: 18
+    ResumeAcceleration: 12
+  drilling:
+    DrillPower: 5
+    DamagePerPower: 10
+    EnergyCapacity: 100
+    MovingEnergyPerSecond: 0.7
+    BlockedEnergyPerSecond: 0.5
+  footprint: {fileID: 1436174036205701909}
+  drillTip: {fileID: 2305893892031020690}
+  obstacles: []
 --- !u!114 &3369789331244538032
 MonoBehaviour:
   m_ObjectHideFlags: 0
