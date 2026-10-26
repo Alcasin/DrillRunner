@@ -1,5 +1,4 @@
 using System.Reflection;
 
-// Compile the runtime assembly without introducing placeholder gameplay types.
 [assembly: AssemblyTitle("DrillRunner.Runtime")]
-[assembly: AssemblyDescription("DrillRunner runtime assembly. M0 contains no gameplay systems.")]
+[assembly: AssemblyDescription("DrillRunner launch, kinematic movement, pointer input, and prototype presentation.")]

@@ -1,7 +1,7 @@
 {
     "name": "DrillRunner.Runtime",
     "rootNamespace": "DrillRunner",
-    "references": ["Unity.InputSystem"],
+    "references": ["Unity.InputSystem", "Unity.ugui"],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

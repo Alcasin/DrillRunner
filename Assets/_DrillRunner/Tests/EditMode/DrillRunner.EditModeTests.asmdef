@@ -6,6 +6,7 @@
         "DrillRunner.Editor",
         "Unity.InputSystem",
         "Unity.InputSystem.TestFramework",
+        "Unity.ugui",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Universal.Runtime"
     ],
