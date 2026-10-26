@@ -1,0 +1,42 @@
+* text=auto
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# Stable text serialization; Unity .meta files are versioned.
+*.cs text eol=lf
+*.asmdef text eol=lf
+*.asmref text eol=lf
+*.json text eol=lf
+*.inputactions text eol=lf
+*.md text eol=lf
+*.shader text eol=lf
+*.hlsl text eol=lf
+*.uss text eol=lf
+*.uxml text eol=lf
+*.meta text eol=lf
+*.unity text eol=lf
+*.prefab text eol=lf
+*.asset text eol=lf
+*.mat text eol=lf
+*.anim text eol=lf
+*.controller text eol=lf
+*.overrideController text eol=lf
+*.renderTexture text eol=lf
+*.terrainlayer text eol=lf
+*.ps1 text eol=crlf
+
+# Common source art and media
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.tga binary
+*.psd binary
+*.exr binary
+*.fbx binary
+*.blend binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.mp4 binary
+*.ttf binary
+*.otf binary

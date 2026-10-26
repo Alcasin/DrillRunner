@@ -1,0 +1,45 @@
+# Unity-generated state and local output
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Ll]ogs/
+/[Bb]uild/
+/[Bb]uilds/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+/TestResults/
+/[Aa]rtifacts/
+
+# IDE state and generated project files
+.vs/
+.idea/
+.vscode/
+*.csproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.opendb
+*.VC.db
+*.csproj.meta
+*.pidb.meta
+*.pdb.meta
+
+# Unity local tooling, crash reports, and platform output
+/Assets/AssetStoreTools/
+/Assets/Plugins/Editor/JetBrains*
+/sysinfo.txt
+/crash-report*
+*.apk
+*.aab
+*.unitypackage
+
+# OS noise
+.DS_Store
+Thumbs.db
+Desktop.ini

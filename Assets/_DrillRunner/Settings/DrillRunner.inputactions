@@ -1,0 +1,67 @@
+{
+    "name": "DrillRunner",
+    "maps": [
+        {
+            "name": "Gameplay",
+            "id": "9fa0178f-5b45-411f-8e15-f7a1ec9a0b15",
+            "actions": [
+                {
+                    "name": "Charge",
+                    "type": "Button",
+                    "id": "26f72f32-6e62-4a75-95cc-2a0339f3d7a0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Steer",
+                    "type": "Value",
+                    "id": "e785d697-5425-4d83-86a7-ddf9b045446b",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "id": "f7c7b647-1e0a-4923-a01e-7ba6393d218f",
+                    "path": "<Mouse>/leftButton",
+                    "groups": "Mouse",
+                    "action": "Charge"
+                },
+                {
+                    "id": "629590f0-06ba-46f8-9a28-349832067f83",
+                    "path": "<Touchscreen>/primaryTouch/press",
+                    "groups": "Touch",
+                    "action": "Charge"
+                },
+                {
+                    "id": "b5631390-cb16-497c-93dc-099f15de89ad",
+                    "path": "<Mouse>/delta",
+                    "groups": "Mouse",
+                    "action": "Steer"
+                },
+                {
+                    "id": "fd3c90da-26af-40b5-a035-8a8d0df57e42",
+                    "path": "<Touchscreen>/primaryTouch/delta",
+                    "groups": "Touch",
+                    "action": "Steer"
+                }
+            ]
+        }
+    ],
+    "controlSchemes": [
+        {
+            "name": "Mouse",
+            "bindingGroup": "Mouse",
+            "devices": [{"devicePath": "<Mouse>", "isOptional": false, "isOR": false}]
+        },
+        {
+            "name": "Touch",
+            "bindingGroup": "Touch",
+            "devices": [{"devicePath": "<Touchscreen>", "isOptional": false, "isOR": false}]
+        }
+    ]
+}
