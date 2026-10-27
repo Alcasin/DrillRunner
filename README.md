@@ -2,16 +2,16 @@
 
 A portrait mobile 3D evolution runner built with **Unity 6000.3.8f1 (6.3 LTS)** and **Universal Render Pipeline 17.3.0**. The approved game has eight drill forms and four regions; the first vertical slice will cover one region and Form 1 to Form 2.
 
-**M2 adds progressive drilling, strict material hardness, and run energy to the accepted M1 controls and camera.** Resources, rewards, economy, upgrades, evolution, and procedural tracks are not implemented. Stop here for review before M3.
+**M3 adds continuously extending modular track, seeded layouts, distance Coins, obstacle Coins, and Copper rewards to the accepted M2 gameplay.** Rewards exist only for the current run. Purchasing, persistent progression, and evolution are not implemented. Stop here for review before M4.
 
 ## Open and inspect
 
 1. Open this directory with Unity Hub using 6000.3.8f1.
 2. Open `Assets/_DrillRunner/Scenes/Gameplay.unity`.
 3. Select the already verified **Portrait 9:16** Game View aspect and press **Play**.
-4. Hold on the track to charge; release to launch. Press and drag horizontally to steer. Wood and Brick drill automatically on central contact. Stone blocks the default drill: drag around either side. **RESTART** restores the player, charge, speed, energy, obstacles, input, and camera.
+4. Hold on the track to charge; release to launch. Drag horizontally to steer. Drill Wood/Brick and teal Copper Ore; bypass Stone at default power 5. The HUD tracks distance, Coins, and Copper. **RESTART** restores gameplay and clears the current run's course, rewards, and summary.
 
-The scene retains the M0/M1 camera, light, primitive drill, track edges, and static distance marks. Forward is **+Z**, steering is **X**, and the drill root stays at **Y = 0**. The drill nose faces forward. The 20 km slab remains a finite static reference; energy now limits a run's duration. The M2 encounter is confined to Wood at Z=35, Brick at Z=65, Stone at Z=95, and another Wood at Z=130. Both sides of each obstacle have room for the complete player footprint.
+Forward remains **+Z**, steering **X**, and track height **Y = 0**. The accepted M2 opening is now four connected authored modules: Wood at Z=35, Brick at Z=65, Stone at Z=95, and Wood at Z=130. Beyond an open transition buffer, seeded Workshop Yard sections continue indefinitely. Energy limits normal run duration. The old 20 km slab/guides remain inactive reference objects and provide no gameplay surface or collision.
 
 Portrait orientation and a 540 x 960 default player window remain configured. The Windows build target is retained; Android has not been selected. If the local aspect preference is missing on another machine: **Game View > aspect dropdown > + > Aspect Ratio > 9 by 16**, label it **Portrait 9:16**, save and select.
 
@@ -23,13 +23,13 @@ All project-owned production assets live under `Assets/_DrillRunner/`:
 
 | Folder | Purpose |
 | --- | --- |
-| `Runtime/` | Existing motion/input/camera/HUD, extended motor, `DrillRules`, `DrillContacts`, `DrillObstacle`, `MaterialDefinition` |
-| `Editor/` | M0/M1 tooling, one M2 setup command, Editor-only power/energy QA Inspector controls |
+| `Runtime/` | Existing M2 gameplay, dynamic motor registry, `TrackSection`, `TrackCatalog`, `TrackSafety`, `TrackStreamer`, `RunProgress`, `RunRewards` |
+| `Editor/` | Earlier milestone tooling, one M3 setup command, power/energy and seed QA Inspector controls |
 | `Tests/EditMode/` | Editor-only `DrillRunner.EditModeTests`, excluded from player builds |
 | `Tests/PlayMode/` | Runtime movement/input/UI/camera, drilling/contact/energy/restart integration tests |
 | `Scenes/`, `Settings/`, `Materials/` | Gameplay scene, unchanged gameplay input asset, URP prototype materials |
-| `Prefabs/`, `Models/` | Drill and three obstacle prefabs; static distance-mark mesh |
-| `ScriptableObjects/` | Wood, Brick, and Stone material definitions |
+| `Prefabs/`, `Models/` | Drill/four obstacle prefabs, 11 authored `TrackSections/` prefabs, archived distance-mark mesh |
+| `ScriptableObjects/` | Wood/Brick/Stone/Copper Ore definitions and Workshop Yard track catalog |
 | `Textures/`, `Audio/`, `VFX/`, `UI/` | Asset destinations reserved for later milestones |
 
 The original template assets under `Assets/Settings`, `Assets/Scenes`, `Assets/TutorialInfo`, and the root input asset remain in place with their original GUIDs. Existing URP pipeline assets and quality tiers are retained. Empty project folders are kept through their versioned Unity folder `.meta` files; Unity recreates the folders when importing a fresh checkout.
@@ -99,7 +99,7 @@ Energy and durability use elapsed time, clamp at zero, and emit completion once.
 
 Invalid material data stays solid and undamageable with a clear warning. Invalid run settings are rejected before modifying an existing run. Invalid initial drilling configuration stops the motor with an error instead of permitting movement. Public motor simulation accepts finite intervals from 0 to 10 seconds; ordinary Unity frame deltas are well within this range.
 
-For QA, select the drill root's **DrillMotor** Inspector while playing:
+For power/energy QA, select the drill root's **DrillMotor** Inspector while playing:
 
 - **QA: Power 5 / Energy 100 - Restart** restores the default test configuration.
 - **QA: Power 10 / Energy 100 - Restart** permits drilling Stone.
@@ -107,32 +107,56 @@ For QA, select the drill root's **DrillMotor** Inspector while playing:
 
 These buttons exist only in the Editor, reset the complete run, and revert on leaving Play Mode. No production upgrade UI or progression is added. Material assets can be tuned in the Inspector. Drilling/energy settings are captured on Restart; movement settings are captured on entering Play.
 
+## M3 modular course and rewards
+
+All modules are **6 units wide × 40 units long**, with entrance at local Z=0 and exit at Z=40. The four starter prefabs preserve the accepted opening. Seven streamed variants provide Open, offset Wood, offset Brick, Mixed, Stone Bypass, Copper, and Risk/Reward encounters. They use the same M2 obstacle components and collision rules; steering remains continuous.
+
+`TrackStreamer` keeps **200 units ahead** and **80 behind**, initially including an open rear section for the camera and an open section at Z=160–200. Seeded variants begin at Z=200. It creates one section roughly every four seconds at cruise, unregisters/deactivates retired sections, and destroys generated ones. The four authored starter roots are retained inactive for clean replay. Default active section counts remain at or below 10, including a protected interaction. No large pooling framework or giant replacement track is used. Streaming stops after RunEnded and pauses automatic extension while the motor component is disabled for manual simulation.
+
+`TrackSafety` validates complete-footprint routes, central alignment for drillable materials, real Stone bypasses, nonoverlapping placements, transition clearances, and reachable Copper at initial power 5. The validator constructs a conservative constant-X route certificate rather than accepting visual gaps. Catalog variants have clearance for changing routes between sections. An unsafe selected variant becomes the known-safe Open fallback; an invalid fallback/catalog stops the attempt with an error.
+
+The run uses a private xorshift sequence, independent of Unity's global random state. On **M3 Workshop Run > RunProgress**, fixed seed **1337** is enabled by default. Edit **Configured Seed**, then use **QA: Replay configured seed** to reproduce it, or **QA: New random seed** for a fresh attempt. The active seed appears in the Inspector and Console. Matching seeds require unchanged catalog/material configuration. The first procedural section and every third selection thereafter offer reachable Copper.
+
+| Reward source | Per-run payout |
+| --- | --- |
+| Forward distance | 1 Coin per completed 5 units; primary income source |
+| Wood destruction | 1 Coin |
+| Brick destruction | 2 Coins |
+| Stone destruction, when power permits | 3 Coins |
+| Copper Ore destruction | 3 Copper and **0 obstacle Coins** |
+
+Copper Ore has hardness **4**, durability **90**, and drilling cost **10 energy/s**. At power 5 it takes **1.8 seconds** and **18 drilling energy**. Its teal material distinguishes it from normal obstacles. Rewards are configured by `MaterialDefinition.RewardKind` and `RewardAmount`; distance parameters live on RunProgress's Reward Settings.
+
+`RunRewards` is the only reward ledger. Distance uses maximum forward Z progress from the run start, ignoring lateral movement, pauses, and backtracking. Integer interval payouts avoid accumulated fractional Coin rounding. Obstacle encounter IDs prevent repeat payouts; partial damage, restoration, stale unregistered objects, and post-completion callbacks cannot add rewards. Completing the run freezes distance, both Coin sources, Copper, and seed. Restart creates an empty ledger and clean course; no Coin/Copper balances are written to PlayerPrefs or disk.
+
+The existing HUD shows earnings and a minimal frozen summary after depletion. No Workshop, purchasing, inventory framework, save system, or evolution UI is included.
+
 ## Repeatable setup
 
-M2 wiring has already run. **Tools > DrillRunner > Setup M2 Drilling Prototype** is the single M2 setup command. It adds missing material/obstacle assets, extends the existing drill prefab with a contact-tip reference, and wires the encounter and feedback into the existing scene/HUD. Existing component tuning, assets, references, GUIDs, and unrelated objects are preserved on reruns. A dirty loaded Gameplay scene is refused until saved. Conflicts produce errors instead of replacing user work. M0/M1 setup commands remain available and preserve the extended scene.
+M3 wiring has already run. **Tools > DrillRunner > Setup M3 Modular Track** is the single M3 setup command. It creates section/Copper assets, converts the existing opening into connected starter prefab instances, wires one streamer/run tracker, and extends the existing HUD. Earlier test assets and original GUIDs are preserved. Rerunning validates existing references/catalog without rewriting the scene or tuning. A dirty loaded scene is refused until saved. Earlier setup commands remain available and preserve the extended scene.
 
-Batch M2 setup, from the project root (close this project in the Editor first):
+Batch M3 setup, from the project root (close this project in the Editor first):
 
 ```powershell
 $unityEditor = 'C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Unity.exe'
-& $unityEditor -batchmode -nographics -quit -projectPath . -executeMethod DrillRunner.Editor.DrillingPrototypeSetup.Setup -logFile Logs/M2-Setup.log
+& $unityEditor -batchmode -nographics -quit -projectPath . -executeMethod DrillRunner.Editor.ModularTrackSetup.Setup -logFile Logs/M3-Setup.log
 ```
 
 No setup runs automatically on import. Scene and prefab YAML are generated only by Unity. Replace the prefab's `Visuals` children for future art while retaining the movement root and configured footprint.
 
 ## Testing
 
-Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. All original M0/M1 tests remain unchanged. M2 adds hardness/durability/energy rules, swept contact and state integration, missing/invalid data handling, and setup/restart preservation checks.
+Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. All original M0/M1/M2 tests remain unchanged. M3 adds seed/route/reward rules, streaming lifecycle, spawned drilling/Copper/Stone integration, cleanup, summary freezing, and accelerated travel beyond 30 km.
 
 Batch run (close this project in the Editor first; omit `-quit` because the test runner exits when finished):
 
 ```powershell
-& $unityEditor -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -assemblyNames DrillRunner.EditModeTests -testResults Logs/M2-EditMode.xml -logFile Logs/M2-EditMode.log
-& $unityEditor -batchmode -projectPath . -runTests -testPlatform PlayMode -assemblyNames DrillRunner.PlayModeTests -testResults Logs/M2-PlayMode.xml -logFile Logs/M2-PlayMode.log
+& $unityEditor -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -assemblyNames DrillRunner.EditModeTests -testResults Logs/M3-EditMode.xml -logFile Logs/M3-EditMode.log
+& $unityEditor -batchmode -projectPath . -runTests -testPlatform PlayMode -assemblyNames DrillRunner.PlayModeTests -testResults Logs/M3-PlayMode.xml -logFile Logs/M3-PlayMode.log
 ```
 
-Run those processes sequentially. Graphical PlayMode tests capture 540 x 960 images under `Logs/`, including Drilling, Blocked, and RunEnded; with `-nographics`, numerical runtime checks still run but captures are omitted. Logs and test results are ignored local files. See `Docs/M2-Validation.md` for executed results and minimum QA. M0/M1 validation reports record the earlier accepted milestones.
+Run those processes sequentially. Graphical tests capture 540 x 960 images under `Logs/`; `-nographics` omits captures. Logs/results are ignored local files. See `Docs/M3-Validation.md` for executed results and minimum QA. Earlier validation reports record the accepted M0–M2 milestones.
 
 ## Source control
 
-Unity Force Text serialization, Visible Meta Files, `.gitignore`, and `.gitattributes` are retained. Version `Assets` with all `.meta` files, `Packages`, `ProjectSettings`, and documentation. Unity caches, local settings, builds, logs, and generated IDE projects are ignored. No commit, push, remote changes, or Git LFS setup are part of M2.
+Unity Force Text serialization, Visible Meta Files, `.gitignore`, and `.gitattributes` are retained. Version `Assets` with all `.meta` files, `Packages`, `ProjectSettings`, and documentation. Unity caches, local settings, builds, logs, and generated IDE projects are ignored. No commit, push, remote changes, or Git LFS setup are part of M3.

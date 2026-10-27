@@ -18,3 +18,5 @@ MonoBehaviour:
   Durability: 240
   DrillingEnergyPerSecond: 18
   FeedbackColor: {r: 0.62, g: 0.68, b: 0.76, a: 1}
+  RewardKind: 0
+  RewardAmount: 3

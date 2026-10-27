@@ -13,6 +13,12 @@ namespace DrillRunner
         [SerializeField] private Image energyFill;
         [SerializeField] private Image durabilityFill;
         [SerializeField] private Text materialText;
+        [SerializeField] private RunProgress runProgress;
+        [SerializeField] private Text rewardText;
+        [SerializeField] private Text summaryText;
+        private int displayedDistance = -1;
+        private long displayedCoins = -1, displayedCopper = -1;
+        private RunRewards displayedRun;
         private RunState previousState = (RunState)(-1);
         private DrillObstacle previousTarget;
 
@@ -22,6 +28,8 @@ namespace DrillRunner
         public Text StateText => stateText;
         public Image EnergyFill => energyFill;
         public Image DurabilityFill => durabilityFill;
+        public Text RewardText => rewardText;
+        public Text SummaryText => summaryText;
 
         private void OnEnable() => restartButton.onClick.AddListener(Restart);
         private void OnDisable() => restartButton.onClick.RemoveListener(Restart);
@@ -30,6 +38,7 @@ namespace DrillRunner
         private void Update()
         {
             var motion = input.Motor.Motion;
+            UpdateRewards();
             chargeFill.fillAmount = motion.ChargeNormalized;
             var target = input.Motor.ContactTarget;
             if (energyFill != null)
@@ -73,6 +82,20 @@ namespace DrillRunner
                     hintText.text = "Run ended - press RESTART";
                     break;
             }
+        }
+
+        private void UpdateRewards()
+        {
+            var run = runProgress != null ? runProgress.Rewards : null;
+            if (run == null || rewardText == null || summaryText == null) return;
+            var distance = (int)System.Math.Min(int.MaxValue, System.Math.Floor(run.Distance));
+            if (displayedRun != run || displayedDistance != distance || displayedCoins != run.Coins || displayedCopper != run.Copper)
+            {
+                displayedRun = run; displayedDistance = distance; displayedCoins = run.Coins; displayedCopper = run.Copper;
+                rewardText.text = distance + " m    COINS " + run.Coins + "    COPPER " + run.Copper;
+                summaryText.text = "RUN COMPLETE\n" + distance + " m  |  " + run.Coins + " Coins  |  " + run.Copper + " Copper";
+            }
+            summaryText.gameObject.SetActive(run.IsCompleted);
         }
     }
 }

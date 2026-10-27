@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1320edd5b590d141b1ac28c02bed647, type: 3}
+  m_Name: WorkshopYardCatalog
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.TrackCatalog
+  Width: 6
+  SectionLength: 40
+  InitialPower: 5
+  Fallback: {fileID: 3944416953304638900, guid: 80df88c95632b064eba085ab66af392f, type: 3}
+  Variants:
+  - {fileID: 3944416953304638900, guid: 80df88c95632b064eba085ab66af392f, type: 3}
+  - {fileID: 5422471209300613752, guid: 0a0d94b873f911b488ec697a1a5a6d23, type: 3}
+  - {fileID: 9144677505369315931, guid: 9ec89384c444eb841ad19fcbf0e58ee3, type: 3}
+  - {fileID: 3820305963271373256, guid: 623e7a40f554bfc47a8bee74d6afca4f, type: 3}
+  - {fileID: 6279896219631629201, guid: 25af925a4f9573648a7424afb1dea949, type: 3}
+  - {fileID: 5780505140351844068, guid: 3fd8681912df3c146a138239fb3ad591, type: 3}
+  - {fileID: 2674612686526123946, guid: e4dd6c6c878a2f146b10bc275c3a9046, type: 3}
+  ResourceInterval: 3
