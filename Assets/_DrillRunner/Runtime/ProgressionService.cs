@@ -14,13 +14,14 @@ namespace DrillRunner
         public bool Writable { get; private set; }
         public string Status { get; private set; }
         public EffectiveAttributes Attributes => config.Calculate(current);
+        public ProgressionConfig ActiveForm => config.ForForm(current.FormId);
 
         public ProgressionService(IProgressStore store, ProgressionConfig config)
         {
             this.store = store ?? throw new ArgumentNullException(nameof(store));
             this.config = config ?? throw new ArgumentNullException(nameof(config)); config.Validate();
             var loaded = store.Load(); current = loaded.Progress.Copy(); Writable = loaded.Writable; Status = loaded.Message;
-            try { current.Validate(config); }
+            try { current.Validate(config); current.FormSchema = 1; } // M4 migration is additive and does not write until a normal transaction.
             catch (ArgumentException exception) { current = new PlayerProgress(); Writable = false; Status = exception.Message; }
         }
 
@@ -30,7 +31,7 @@ namespace DrillRunner
             if (!Writable || writing) { error = Writable ? "A transaction is in progress." : Status; return false; }
             try
             {
-                next.Revision = checked(current.Revision + 1); next.Validate(config); writing = true;
+                config.Validate(); next.Revision = checked(current.Revision + 1); next.Validate(config); writing = true;
                 if (!store.TrySave(next.Copy(), out error)) { Status = error; return false; }
                 current = next; Status = "Progress saved."; return true;
             }
@@ -42,12 +43,34 @@ namespace DrillRunner
         public bool TryPurchase(UpgradeCategory category, out string error)
         {
             error = null;
+            try { config.Validate(); current.Validate(config); }
+            catch (ArgumentException exception) { error = exception.Message; return false; }
             if (!Enum.IsDefined(typeof(UpgradeCategory), category)) { error = "Unknown upgrade category."; return false; }
-            var level = current.Level(category); var table = config.Table(category);
+            var level = current.Level(category); var table = ActiveForm.Table(category);
             if (level >= table.MaximumLevel) { error = "MAX level reached."; return false; }
             var price = table.Costs[level];
             if (price <= 0 || current.Coins < price) { error = "Not enough Coins."; return false; }
             var next = current.Copy(); next.Coins -= price; next.Increase(category);
+            return Commit(next, out error);
+        }
+
+        public EvolutionEligibility Evolution(bool workshopAllowed)
+        {
+            try { config.Validate(); current.Validate(config); }
+            catch (ArgumentException exception) { return new EvolutionEligibility("Evolution unavailable: " + exception.Message); }
+            var form = ActiveForm; var next = form.NextForm;
+            var power = current.Level(UpgradeCategory.DrillPower); var energy = current.Level(UpgradeCategory.EnergyCapacity); var drive = current.Level(UpgradeCategory.DrivePower);
+            return new EvolutionEligibility(power, form.Power.MaximumLevel, energy, form.Energy.MaximumLevel, drive, form.Drive.MaximumLevel,
+                current.Copper, next != null ? form.EvolutionCopper : 0, next != null ? next.DisplayName : null, Writable && workshopAllowed);
+        }
+
+        public bool TryEvolve(bool workshopAllowed, out string error)
+        {
+            var eligibility = Evolution(workshopAllowed); error = eligibility.Description;
+            if (!eligibility.Ready) return false;
+            var next = current.Copy(); next.Copper -= ActiveForm.EvolutionCopper;
+            next.FormId = ActiveForm.NextForm.FormId; next.FormSchema = 1;
+            next.WorkshopPowerLevel = next.WorkshopEnergyLevel = next.WorkshopDriveLevel = 0;
             return Commit(next, out error);
         }
 

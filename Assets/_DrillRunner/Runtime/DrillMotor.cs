@@ -245,6 +245,7 @@ namespace DrillRunner
             var movement = settings.Snapshot(); var damage = drilling.Snapshot();
             movement.CruiseSpeed = attributes.Cruise; movement.MinimumLaunchBoost = attributes.MinimumBoost;
             movement.MaximumLaunchBoost = attributes.MaximumBoost; movement.ResumeAcceleration = attributes.Recovery;
+            movement.MaximumSpeed = attributes.SpeedCeiling;
             damage.DrillPower = attributes.Power; damage.EnergyCapacity = attributes.Energy;
             movement.Validate(); damage.Validate();
             settings = movement; drilling = damage;

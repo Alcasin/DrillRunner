@@ -2,7 +2,7 @@
 
 A portrait mobile 3D evolution runner built with **Unity 6000.3.8f1 (6.3 LTS)** and **Universal Render Pipeline 17.3.0**. The approved game has eight drill forms and four regions; the first vertical slice will cover one region and Form 1 to Form 2.
 
-**M4 adds a Workshop, permanent Coin/Copper balances, and Pocket Drill power, energy, and drive upgrades to the accepted M3 gameplay.** Completed runs bank once to a versioned local save. Evolution and new forms/regions are deferred to M5. Stop here for M4 review.
+**M5 completes Pocket Drill → Workshop Drill evolution and the persistent gameplay loop.** Max all three Pocket upgrade categories, collect **12 Copper**, then explicitly EVOLVE in Workshop. Workshop Drill has a distinct model, stronger starting stats, and its own upgrades. Existing M4 profiles are preserved. Stop here for M5 review; M6 is not started.
 
 ## Open and inspect
 
@@ -26,7 +26,7 @@ All project-owned production assets live under `Assets/_DrillRunner/`:
 | Folder | Purpose |
 | --- | --- |
 | `Runtime/` | Existing M0–M3 gameplay plus progression model/configuration, file store, transaction service, and Workshop controller/view |
-| `Editor/` | Earlier milestone tooling, one M4 setup command, power/energy, seed, and isolated development-profile Inspector controls |
+| `Editor/` | Earlier milestone tooling, one M5 evolution setup command, power/energy, seed, and isolated development-profile Inspector controls |
 | `Tests/EditMode/` | Editor-only `DrillRunner.EditModeTests`, excluded from player builds |
 | `Tests/PlayMode/` | Runtime movement/input/UI/camera, drilling/contact/energy/restart integration tests |
 | `Scenes/`, `Settings/`, `Materials/` | Gameplay scene, unchanged gameplay input asset, URP prototype materials |
@@ -135,7 +135,7 @@ The HUD shows temporary earnings, effective Power, current/max Energy, a frozen 
 
 ## M4 Workshop and persistent progress
 
-Workshop is a portrait panel on the existing HUD Canvas. It reuses the same motor, input adapter, camera, and M3 tracker. It shows permanent Coins/Copper, a Pocket Drill placeholder, three upgrade rows, current/maximum levels, current/next stats, prices, MAX states, and Start Run. Buying is available only in Workshop between attempts. Copper is retained for M5 and is never spent in M4.
+Workshop is a portrait panel on the existing HUD Canvas. It reuses the same motor, input adapter, camera, and M3 tracker. It shows permanent Coins/Copper, the current form preview, three upgrade rows, current/maximum levels, current/next stats, prices, MAX states, evolution requirements, and Start Run. Buying/evolving is available only in Workshop between attempts. Coins buy normal upgrades; Copper buys the single supported evolution.
 
 Tune `Assets/_DrillRunner/ScriptableObjects/PocketDrillProgression.asset` outside Play Mode:
 
@@ -151,11 +151,31 @@ Drive also increases minimum launch boost from 2 to 3 and post-contact accelerat
 
 The local file is **`Application.persistentDataPath/drillrunner-progress.json`**, schema version **1**, with one previous revision in `.bak`. Select **M4 Workshop** in Play Mode to inspect the exact platform-specific path. The JSON envelope contains a payload and SHA-256 corruption check. Writes flush a unique staging file, then atomically replace the primary and retain a backup under an exclusive writer lock. No PlayerPrefs or cloud service is used. Invalid/corrupt/unsupported saves are preserved read-only; a valid backup can be recovered with explicit confirmation in the Editor Inspector, archiving the rejected primary.
 
-For upgrade QA without editing JSON or affecting real progress, select **M4 Workshop → QA: Temporary funded profile (no disk writes)**, then confirm. This gives a temporary 10,000-Coin profile. Buy upgrades, test them, then leave Play Mode to return to real progression. Neither temporary purchases nor its banked run rewards reach the local save. M2 temporary power/energy QA runs also cannot bank permanent earnings.
+For upgrade/evolution QA without editing JSON or affecting real progress, select **M4 Workshop**, set **Temporary Copper** (default 24; use 0 for a missing-resource check), then confirm **QA: Temporary funded profile (no disk writes)**. This gives 10,000 temporary Coins and the selected Copper. Buy upgrades and evolve, then leave Play Mode to return to real progression. Neither temporary purchases, evolution, nor banked rewards reach the local save. M2 temporary power/energy QA runs also cannot bank permanent earnings.
 
 **Tools → DrillRunner → Setup M4 Workshop** has already run. It is idempotent, preserves earlier scene references and tuning, and requires no manual wiring. Batch entry: `DrillRunner.Editor.WorkshopSetup.Setup` with the same Unity command pattern below. Automated M4 tests use memory stores or unique OS-temp directories, never the real game profile.
 
-See `Docs/M4-Validation.md` for implementation details, actual tests, limitations, and minimum manual QA. No M5 Evolution system is included.
+See `Docs/M4-Validation.md` for the accepted M4 checkpoint; `Docs/M5-Validation.md` records current evolution behavior and validation.
+
+## M5 evolution and Workshop Drill
+
+**EVOLVE requires Pocket Drill Power 5/5, Energy 5/5, Drive 5/5, and at least 12 Copper.** The requirement panel explains missing conditions. The progression service calculates eligibility and commits the form change, Copper deduction, and new tier atomically. There is no extra Coin fee. Repeated clicks, active-run requests, save failures, and interrupted presentation cannot repeat or partially apply the transaction.
+
+Pocket upgrade levels remain saved at MAX as history. Workshop levels start at zero, using stronger absolute tier values; old bonuses are neither removed nor added twice. The original 2,480-Coin Pocket upgrade budget is unchanged. A guided effective-player simulation reached evolution in six runs, earning 2,704 Coins and 12 Copper without funding, then purchased the first Workshop Power upgrade. Human pacing still needs manual QA.
+
+| Workshop Drill category | Values at levels 0–5 | Coin costs for levels 1–5 |
+| --- | --- | --- |
+| Drill Power | **12**, 13, 14, 15, 16, 18 | 150, 230, 340, 480, 650 |
+| Energy Capacity | **200**, 220, 240, 260, 280, 300 | 130, 210, 310, 440, 600 |
+| Drive cruise | **12.2**, 12.35, 12.5, 12.65, 12.8, 13 | 130, 210, 310, 440, 600 |
+
+Workshop minimum launch boost rises from 3.25 to 4.25; maximum boost from 12.25 to 13; recovery acceleration from 24 to 34. Its conservative speed ceiling is **26**. Pocket stays at 24. Both use the same full 1.7×3 horizontal collision footprint, strict hardness rules, input, camera, and modular tracks. Visual-only child models have no decorative colliders or extra controller. Static rendered previews reuse the same models without a second runtime camera.
+
+Tune the existing Pocket progression asset and `Assets/_DrillRunner/ScriptableObjects/WorkshopDrillProgression.asset`. Only these two forms exist. The evolved tier has no next evolution or functional EVO 3 control. The short presentation locks controls for 0.9 seconds; the save completes before it begins. Reload/interrupt restores the committed form directly.
+
+Save envelope/payload version remains **1**, extended additively with `FormSchema = 1` and three Workshop-level fields. Original M4 Pocket profiles (extension absent/zero) retain Coins, Copper, identity, upgrade levels, revision, and banking receipts. Missing new counters become zero; no migration-only disk rewrite occurs. The next normal transaction stores the extension through the unchanged atomic save/backup mechanism. Unsupported versions, extension versions, identifiers, or inconsistent form histories remain read-only with original data preserved.
+
+**Tools → DrillRunner → Setup M5 Evolution** has already created/wired all assets and UI through Editor APIs. It is idempotent and does not access player saves. No manual references are required. Batch entry: `DrillRunner.Editor.EvolutionSetup.Setup`; graphical Editor execution is needed only when initially generating model preview textures. Existing previews allow subsequent setup/test runs without graphics.
 
 ## Repeatable setup
 
@@ -172,7 +192,7 @@ No setup runs automatically on import. Scene and prefab YAML are generated only 
 
 ## Testing
 
-Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. All original M0–M3 tests remain unchanged. M4 adds persistence, economy, banking, Workshop navigation, and upgraded gameplay tests. Tests use isolated stores, preserving the actual profile.
+Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. All original M0–M4 tests remain unchanged. M5 adds evolution eligibility/transactions, legacy migration, two-tier progression, visual switching, interrupted presentation, high-speed safety, and an unfunded guided gameplay loop. Tests use memory or unique OS-temp stores, preserving the actual profile. Use `Logs/M5-EditMode.xml` and `Logs/M5-PlayMode.xml` for current result filenames in the commands below.
 
 Batch run (close this project in the Editor first; omit `-quit` because the test runner exits when finished):
 
@@ -185,4 +205,4 @@ Run those processes sequentially. Graphical tests capture 540 x 960 images under
 
 ## Source control
 
-Unity Force Text serialization, Visible Meta Files, `.gitignore`, and `.gitattributes` are retained. Version `Assets` with all `.meta` files, `Packages`, `ProjectSettings`, and documentation. Unity caches, local settings, builds, logs, and generated IDE projects are ignored. No commit, push, remote changes, or Git LFS setup are part of M4.
+Unity Force Text serialization, Visible Meta Files, `.gitignore`, and `.gitattributes` are retained. Version `Assets` with all `.meta` files, `Packages`, `ProjectSettings`, and documentation. Unity caches, local settings, builds, logs, and generated IDE projects are ignored. No commit, push, remote changes, or Git LFS setup are part of M5.

@@ -12,6 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c3155a180b4a88408fe723389ec9143, type: 3}
   m_Name: PocketDrillProgression
   m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.ProgressionConfig
+  FormId: pocket_drill
+  DisplayName: Pocket Drill
+  VisualPrefab: {fileID: 8991279290599235411, guid: f439bd676967f054ca03fb389dcd5b01, type: 3}
+  PreviewImage: {fileID: 2800000, guid: 9c617783357b15843a30736677dea519, type: 3}
+  NextForm: {fileID: 11400000, guid: 4c0747807e50d2b44a65c07af64e9ef3, type: 2}
+  EvolutionCopper: 12
+  SpeedCeiling: 24
   Power:
     Costs: 3c00000064000000a0000000f000000054010000
     Values:

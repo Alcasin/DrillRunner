@@ -13,6 +13,9 @@ namespace DrillRunner
         [SerializeField] private Text[] rows, prices;
         [SerializeField] private Button[] purchase;
         [SerializeField] private Button startRun, openWorkshop, retrySave;
+        [SerializeField] private Button evolve;
+        [SerializeField] private Text requirements, formName;
+        [SerializeField] private RawImage formPreview;
         private string previousMessage;
         private bool previousCompleted;
         public GameObject Panel => panel;
@@ -25,16 +28,22 @@ namespace DrillRunner
         public Button OpenButton => openWorkshop;
         public Button SaveButton => retrySave;
         public CanvasGroup[] GameplayGroups => gameplayGroups;
+        public Button EvolveButton => evolve;
+        public Text Requirements => requirements;
+        public Text FormName => formName;
+        public RawImage FormPreview => formPreview;
 
         private void OnEnable()
         {
             purchase[0].onClick.AddListener(BuyPower); purchase[1].onClick.AddListener(BuyEnergy); purchase[2].onClick.AddListener(BuyDrive);
             startRun.onClick.AddListener(StartAttempt); openWorkshop.onClick.AddListener(Open); retrySave.onClick.AddListener(Save);
+            if (evolve != null) evolve.onClick.AddListener(Evolve);
         }
         private void OnDisable()
         {
             purchase[0].onClick.RemoveListener(BuyPower); purchase[1].onClick.RemoveListener(BuyEnergy); purchase[2].onClick.RemoveListener(BuyDrive);
             startRun.onClick.RemoveListener(StartAttempt); openWorkshop.onClick.RemoveListener(Open); retrySave.onClick.RemoveListener(Save);
+            if (evolve != null) evolve.onClick.RemoveListener(Evolve);
         }
         private void BuyPower() => controller.Purchase(UpgradeCategory.DrillPower);
         private void BuyEnergy() => controller.Purchase(UpgradeCategory.EnergyCapacity);
@@ -42,6 +51,16 @@ namespace DrillRunner
         private void StartAttempt() => controller.StartRun();
         private void Open() => controller.OpenWorkshop();
         private void Save() => controller.RetryBank();
+        private void Evolve() => controller.Evolve();
+        public void EvolutionPulse(float progress)
+        {
+            if (formPreview != null)
+            {
+                var pulse = Mathf.Sin(Mathf.Clamp01(progress) * Mathf.PI);
+                formPreview.rectTransform.localScale = Vector3.one * (1 + 0.1f * pulse);
+                formPreview.color = Color.Lerp(Color.white, new Color(0.3f, 1, 1), pulse);
+            }
+        }
         public void SetOpen(bool value)
         {
             panel.SetActive(value);
@@ -61,7 +80,7 @@ namespace DrillRunner
         public void Refresh()
         {
             if (controller.Service == null) return;
-            var profile = controller.Service.Snapshot; var config = controller.Configuration;
+            var profile = controller.Service.Snapshot; var config = controller.Service.ActiveForm;
             balance.text = "COINS  " + profile.Coins + "       COPPER  " + profile.Copper;
             status.text = (controller.IsSandbox ? "DEVELOPMENT SANDBOX\n" : "") + controller.Message;
             banking.text = controller.Run.Rewards != null && controller.Run.Rewards.IsCompleted ? controller.Message : "";
@@ -69,7 +88,11 @@ namespace DrillRunner
             // Save remains reachable from the Workshop and results without allowing navigation to discard a pending bank.
             retrySave.transform.SetParent(controller.IsOpen ? panel.transform : gameplay.transform, false);
             ((RectTransform)retrySave.transform).anchoredPosition = new Vector2(0, controller.IsOpen ? -846 : -530);
-            startRun.interactable = controller.Service.Writable && !controller.PendingBank;
+            startRun.interactable = controller.Service.Writable && !controller.PendingBank && !controller.IsEvolving;
+            if (formName != null) formName.text = config.DisplayName.ToUpperInvariant() + (profile.FormId == ProgressionConfig.PocketForm ? "  /  EVO 1" : "  /  EVO 2");
+            if (formPreview != null) formPreview.texture = config.PreviewImage;
+            if (requirements != null) requirements.text = controller.Evolution.Description;
+            if (evolve != null) { evolve.gameObject.SetActive(controller.Evolution.HasNext); evolve.interactable = controller.Evolution.Ready; }
             for (var i = 0; i < 3; i++)
             {
                 var category = (UpgradeCategory)i; var table = config.Table(category); var level = profile.Level(category); var max = level == table.MaximumLevel;

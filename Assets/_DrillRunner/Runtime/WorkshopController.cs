@@ -11,13 +11,16 @@ namespace DrillRunner
         [SerializeField] private RunProgress run;
         [SerializeField] private DrillPointerInput input;
         [SerializeField] private WorkshopView view;
+        [SerializeField] private DrillVisuals visuals;
         [SerializeField] private bool editorGameplayEntry = true;
         private IProgressStore store;
         private ProgressionConfig sessionConfig;
+        private ProgressionConfig nextSessionConfig;
         private RunRewards attempt, completed;
         private long token;
         private bool qaAttempt;
         private Func<bool> resetGuard;
+        private float evolutionRemaining;
         internal static Func<IProgressStore> StoreFactory;
         public ProgressionService Service { get; private set; }
         public ProgressionConfig Configuration => sessionConfig != null ? sessionConfig : configuration;
@@ -27,21 +30,57 @@ namespace DrillRunner
         public bool PendingBank { get; private set; }
         public bool IsBanked { get; private set; }
         public bool IsSandbox { get; private set; }
+        public bool IsEvolving => evolutionRemaining > 0;
+        public DrillVisuals Visuals => visuals;
+        public EvolutionEligibility Evolution => Service.Evolution(CanPurchase);
         public string Message { get; private set; }
         public string SavePath => store is FileProgressStore disk ? disk.Path : "Isolated temporary profile";
-        public bool CanPurchase => IsOpen && Service != null && Service.Writable && !PendingBank;
+        public bool CanPurchase => IsOpen && Service != null && Service.Writable && !PendingBank && !IsEvolving &&
+            (input.Motor.Motion.State == RunState.Ready || input.Motor.Motion.State == RunState.RunEnded);
 
         private void Awake()
         {
-            sessionConfig = Instantiate(configuration); sessionConfig.Validate();
+            sessionConfig = Instantiate(configuration);
+            if (sessionConfig.NextForm != null) { nextSessionConfig = Instantiate(sessionConfig.NextForm); sessionConfig.NextForm = nextSessionConfig; }
+            sessionConfig.Validate();
             store = StoreFactory != null ? StoreFactory() : new FileProgressStore(Application.persistentDataPath);
             Service = new ProgressionService(store, sessionConfig); Message = Service.Status;
-            resetGuard = () => !PendingBank;
+            resetGuard = () => !PendingBank && !IsEvolving;
             input.Motor.ResetGuard = resetGuard;
+            if (visuals != null) visuals.Show(Service.ActiveForm);
             input.Motor.ApplyAttributes(Service.Attributes); input.Restart();
         }
-        private void OnEnable() { run.AttemptBegan += OnAttempt; run.Completed += OnCompleted; }
-        private void OnDisable() { run.AttemptBegan -= OnAttempt; run.Completed -= OnCompleted; }
+        private void OnEnable()
+        {
+            run.AttemptBegan += OnAttempt; run.Completed += OnCompleted;
+            if (Service != null && view != null) { view.EvolutionPulse(1); view.Refresh(); }
+        }
+        private void OnDisable()
+        {
+            run.AttemptBegan -= OnAttempt; run.Completed -= OnCompleted;
+            if (IsEvolving) FinishEvolution(false); // UI may already be destroyed during scene unload. The transaction is committed.
+        }
+        private void Update()
+        {
+            if (!IsEvolving) return;
+            evolutionRemaining = Mathf.Max(0, evolutionRemaining - Time.unscaledDeltaTime);
+            view.EvolutionPulse(1 - evolutionRemaining / 0.9f);
+            if (!IsEvolving) FinishEvolution();
+        }
+        private void FinishEvolution(bool refresh = true)
+        {
+            evolutionRemaining = 0;
+            Message = "WORKSHOP DRILL UNLOCKED\nNew stats and upgrades are ready!";
+            if (refresh && view != null) { view.EvolutionPulse(1); view.Refresh(); }
+        }
+        public bool Evolve()
+        {
+            if (!Service.TryEvolve(CanPurchase, out var error))
+            { if (!IsEvolving) { Message = error; view.Refresh(); } return false; }
+            evolutionRemaining = 0.9f;
+            if (visuals != null) visuals.Show(Service.ActiveForm);
+            Message = "EVOLVING · Assembling Workshop Drill..."; view.Refresh(); return true;
+        }
         private void Start()
         {
             if (attempt != run.Rewards && run.Rewards != null) OnAttempt(run.Rewards);
@@ -51,6 +90,7 @@ namespace DrillRunner
         {
             if (input != null && input.Motor != null && input.Motor.ResetGuard == resetGuard) input.Motor.ResetGuard = null;
             if (sessionConfig != null) Destroy(sessionConfig);
+            if (nextSessionConfig != null) Destroy(nextSessionConfig);
         }
         private void OnAttempt(RunRewards ledger)
         {
@@ -88,11 +128,13 @@ namespace DrillRunner
         }
         public bool StartRun()
         {
+            if (IsEvolving) return false;
             if (PendingBank && !RetryBank()) return false;
             if (!Service.Writable) { Message = Service.Status; view.Refresh(); return false; }
             var state = input.Motor.Motion.State;
             if (state != RunState.Ready && state != RunState.RunEnded) return false;
             qaAttempt = false; input.Motor.ApplyAttributes(Service.Attributes);
+            if (visuals != null) visuals.Show(Service.ActiveForm);
             run.UseFixedSeed = false; // Normal Workshop/retry flow varies attempts; fixed QA replay remains available.
             input.Restart();
             if (token == 0 || run.Rewards.IsCompleted) { view.Refresh(); return false; }
@@ -108,26 +150,28 @@ namespace DrillRunner
 #if UNITY_EDITOR
         public void StartQaRun(float power, float energy)
         {
-            if (PendingBank) return;
+            if (PendingBank || IsEvolving) return;
             // Explicit development reset discards an active attempt; neither overrides nor its earnings are persisted.
             qaAttempt = true; input.Motor.Drilling.DrillPower = power; input.Motor.Drilling.EnergyCapacity = energy;
             input.Restart(); IsOpen = false; view.SetOpen(false); input.enabled = true;
             Message = "QA override active. This attempt cannot bank permanent rewards.";
         }
-        public void UseTemporaryFunding()
+        public void UseTemporaryFunding() => UseTemporaryFunding(configuration.EvolutionCopper * 2);
+        public void UseTemporaryFunding(long copper)
         {
             var state = input.Motor.Motion.State;
-            if (PendingBank || (state != RunState.Ready && state != RunState.RunEnded)) return;
-            var copy = Service.Snapshot; copy.Coins = 10000;
+            if (PendingBank || IsEvolving || copper < 0 || (state != RunState.Ready && state != RunState.RunEnded)) return;
+            var copy = Service.Snapshot; copy.Coins = 10000; copy.Copper = copper;
             store = new MemoryProgressStore(copy); Service = new ProgressionService(store, sessionConfig);
             IsSandbox = true; attempt = null; qaAttempt = false;
-            input.Restart(); OpenWorkshop(); Message = "DEVELOPMENT SANDBOX: 10,000 Coins. No changes are written to your local save."; view.Refresh();
+            input.Restart(); OpenWorkshop(); Message = "DEVELOPMENT SANDBOX: 10,000 Coins + " + copper + " Copper. Nothing is written to your local save."; view.Refresh();
         }
         public bool RecoverBackup()
         {
-            if (!(store is FileProgressStore disk) || !IsOpen) return false;
+            if (!(store is FileProgressStore disk) || !IsOpen || IsEvolving) return false;
             if (!disk.RecoverBackup(sessionConfig, out var error)) { Message = error; view.Refresh(); return false; }
             Service = new ProgressionService(disk, sessionConfig); attempt = null;
+            if (visuals != null) visuals.Show(Service.ActiveForm);
             input.Restart(); Message = "Previous revision recovered; rejected primary archived."; view.Refresh(); return true;
         }
 #endif
