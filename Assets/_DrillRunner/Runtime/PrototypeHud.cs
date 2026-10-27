@@ -16,6 +16,10 @@ namespace DrillRunner
         [SerializeField] private RunProgress runProgress;
         [SerializeField] private Text rewardText;
         [SerializeField] private Text summaryText;
+        [SerializeField] private WorkshopController workshop;
+        [SerializeField] private Text attributesText;
+        private int shownEnergy = -1;
+        private float shownPower = -1, shownCapacity = -1;
         private int displayedDistance = -1;
         private long displayedCoins = -1, displayedCopper = -1;
         private RunRewards displayedRun;
@@ -31,14 +35,28 @@ namespace DrillRunner
         public Text RewardText => rewardText;
         public Text SummaryText => summaryText;
 
-        private void OnEnable() => restartButton.onClick.AddListener(Restart);
-        private void OnDisable() => restartButton.onClick.RemoveListener(Restart);
+        private void OnEnable() => restartButton.onClick.AddListener(RestartClicked);
+        private void OnDisable() => restartButton.onClick.RemoveListener(RestartClicked);
+        private void RestartClicked()
+        {
+            if (workshop != null && input.Motor.Motion.State == RunState.RunEnded) workshop.StartRun();
+            else Restart();
+        }
         public void Restart() => input.Restart();
 
         private void Update()
         {
             var motion = input.Motor.Motion;
             UpdateRewards();
+            if (attributesText != null && input.Motor.Energy != null)
+            {
+                var energy = Mathf.CeilToInt(input.Motor.Energy.Remaining);
+                if (energy != shownEnergy || shownPower != input.Motor.DrillPower || shownCapacity != input.Motor.Energy.Capacity)
+                {
+                    shownEnergy = energy; shownPower = input.Motor.DrillPower; shownCapacity = input.Motor.Energy.Capacity;
+                    attributesText.text = "POWER " + shownPower.ToString("0.#") + "     ENERGY " + energy + " / " + shownCapacity.ToString("0.#");
+                }
+            }
             chargeFill.fillAmount = motion.ChargeNormalized;
             var target = input.Motor.ContactTarget;
             if (energyFill != null)
@@ -79,7 +97,7 @@ namespace DrillRunner
                     break;
                 case RunState.RunEnded:
                     stateText.text = "ENERGY EMPTY";
-                    hintText.text = "Run ended - press RESTART";
+                    hintText.text = workshop != null ? "Run complete · Retry or Workshop" : "Run ended - press RESTART";
                     break;
             }
         }

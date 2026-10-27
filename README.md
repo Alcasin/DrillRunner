@@ -2,7 +2,7 @@
 
 A portrait mobile 3D evolution runner built with **Unity 6000.3.8f1 (6.3 LTS)** and **Universal Render Pipeline 17.3.0**. The approved game has eight drill forms and four regions; the first vertical slice will cover one region and Form 1 to Form 2.
 
-**M3 adds continuously extending modular track, seeded layouts, distance Coins, obstacle Coins, and Copper rewards to the accepted M2 gameplay.** Rewards exist only for the current run. Purchasing, persistent progression, and evolution are not implemented. Stop here for review before M4.
+**M4 adds a Workshop, permanent Coin/Copper balances, and Pocket Drill power, energy, and drive upgrades to the accepted M3 gameplay.** Completed runs bank once to a versioned local save. Evolution and new forms/regions are deferred to M5. Stop here for M4 review.
 
 ## Open and inspect
 
@@ -10,6 +10,8 @@ A portrait mobile 3D evolution runner built with **Unity 6000.3.8f1 (6.3 LTS)** 
 2. Open `Assets/_DrillRunner/Scenes/Gameplay.unity`.
 3. Select the already verified **Portrait 9:16** Game View aspect and press **Play**.
 4. Hold on the track to charge; release to launch. Drag horizontally to steer. Drill Wood/Brick and teal Copper Ore; bypass Stone at default power 5. The HUD tracks distance, Coins, and Copper. **RESTART** restores gameplay and clears the current run's course, rewards, and summary.
+
+The Editor keeps this direct gameplay entry for M0–M3 development QA. Click **WORKSHOP** while Ready or after a completed run. Player builds open Workshop first. **START RUN** applies purchased stats immediately; hold/release still launches the drill. Completed-run Retry preserves banked balances. **QA RESET during an active attempt discards its unbanked earnings**. No Editor restart is needed to apply purchases.
 
 Forward remains **+Z**, steering **X**, and track height **Y = 0**. The accepted M2 opening is now four connected authored modules: Wood at Z=35, Brick at Z=65, Stone at Z=95, and Wood at Z=130. Beyond an open transition buffer, seeded Workshop Yard sections continue indefinitely. Energy limits normal run duration. The old 20 km slab/guides remain inactive reference objects and provide no gameplay surface or collision.
 
@@ -23,8 +25,8 @@ All project-owned production assets live under `Assets/_DrillRunner/`:
 
 | Folder | Purpose |
 | --- | --- |
-| `Runtime/` | Existing M2 gameplay, dynamic motor registry, `TrackSection`, `TrackCatalog`, `TrackSafety`, `TrackStreamer`, `RunProgress`, `RunRewards` |
-| `Editor/` | Earlier milestone tooling, one M3 setup command, power/energy and seed QA Inspector controls |
+| `Runtime/` | Existing M0–M3 gameplay plus progression model/configuration, file store, transaction service, and Workshop controller/view |
+| `Editor/` | Earlier milestone tooling, one M4 setup command, power/energy, seed, and isolated development-profile Inspector controls |
 | `Tests/EditMode/` | Editor-only `DrillRunner.EditModeTests`, excluded from player builds |
 | `Tests/PlayMode/` | Runtime movement/input/UI/camera, drilling/contact/energy/restart integration tests |
 | `Scenes/`, `Settings/`, `Materials/` | Gameplay scene, unchanged gameplay input asset, URP prototype materials |
@@ -105,7 +107,7 @@ For power/energy QA, select the drill root's **DrillMotor** Inspector while play
 - **QA: Power 10 / Energy 100 - Restart** permits drilling Stone.
 - **QA: Power 5 / Energy 8 - Restart** demonstrates depletion during the first Wood obstacle.
 
-These buttons exist only in the Editor, reset the complete run, and revert on leaving Play Mode. No production upgrade UI or progression is added. Material assets can be tuned in the Inspector. Drilling/energy settings are captured on Restart; movement settings are captured on entering Play.
+These buttons exist only in the Editor, reset the complete run, and revert on leaving Play Mode. M4 marks these temporary override attempts as unable to bank permanent earnings. They never change saved upgrade levels. Material assets can be tuned in the Inspector. Drilling/energy and movement settings are captured on Restart; normal M4 Start Run derives effective attributes from loaded progression.
 
 ## M3 modular course and rewards
 
@@ -127,9 +129,33 @@ The run uses a private xorshift sequence, independent of Unity's global random s
 
 Copper Ore has hardness **4**, durability **90**, and drilling cost **10 energy/s**. At power 5 it takes **1.8 seconds** and **18 drilling energy**. Its teal material distinguishes it from normal obstacles. Rewards are configured by `MaterialDefinition.RewardKind` and `RewardAmount`; distance parameters live on RunProgress's Reward Settings.
 
-`RunRewards` is the only reward ledger. Distance uses maximum forward Z progress from the run start, ignoring lateral movement, pauses, and backtracking. Integer interval payouts avoid accumulated fractional Coin rounding. Obstacle encounter IDs prevent repeat payouts; partial damage, restoration, stale unregistered objects, and post-completion callbacks cannot add rewards. Completing the run freezes distance, both Coin sources, Copper, and seed. Restart creates an empty ledger and clean course; no Coin/Copper balances are written to PlayerPrefs or disk.
+`RunRewards` remains the only per-run reward ledger. Distance uses maximum forward Z progress from the run start, ignoring lateral movement, pauses, and backtracking. Integer interval payouts avoid accumulated fractional Coin rounding. Obstacle encounter IDs prevent repeat payouts; partial damage, restoration, stale unregistered objects, and post-completion callbacks cannot add rewards. Completing the run freezes distance, both Coin sources, Copper, and seed. M4 banks that completed ledger once into separate permanent balances. Restart creates an empty ledger and clean course.
 
-The existing HUD shows earnings and a minimal frozen summary after depletion. No Workshop, purchasing, inventory framework, save system, or evolution UI is included.
+The HUD shows temporary earnings, effective Power, current/max Energy, a frozen completion summary, and banking status. M4 adds Workshop and Retry navigation to it.
+
+## M4 Workshop and persistent progress
+
+Workshop is a portrait panel on the existing HUD Canvas. It reuses the same motor, input adapter, camera, and M3 tracker. It shows permanent Coins/Copper, a Pocket Drill placeholder, three upgrade rows, current/maximum levels, current/next stats, prices, MAX states, and Start Run. Buying is available only in Workshop between attempts. Copper is retained for M5 and is never spent in M4.
+
+Tune `Assets/_DrillRunner/ScriptableObjects/PocketDrillProgression.asset` outside Play Mode:
+
+| Category | Values at levels 0–5 | Costs for levels 1–5 (Coins) |
+| --- | --- | --- |
+| Drill Power | 5, 6, 7, 8, **9**, 10 | 60, 100, 160, 240, 340 |
+| Energy Capacity | 100, 115, 130, 145, 160, 180 | 50, 90, 140, 210, 300 |
+| Drive / cruise speed | 10, 10.4, 10.8, 11.2, 11.6, 12 | 50, 90, 140, 210, 300 |
+
+Drive also increases minimum launch boost from 2 to 3 and post-contact acceleration from 12 to 22. Maximum boost stays 12; the existing speed ceiling stays 24. Drill Power alone controls hardness and damage. Level 4 Power 9 can destroy unchanged-hardness-9 Stone. Total cost to maximize all three categories is 2,480 Coins. These are prototype prices.
+
+`ProgressionService` owns permanent transactions. It saves a candidate state before publishing it; failure leaves currency and levels unchanged. Completed-run banking uses a persisted monotonic attempt receipt, making repeated completion, Retry, and Workshop visits idempotent. A failed bank leaves the completed ledger frozen, offers **RETRY SAVE**, and blocks reset/new-run/purchases until successful.
+
+The local file is **`Application.persistentDataPath/drillrunner-progress.json`**, schema version **1**, with one previous revision in `.bak`. Select **M4 Workshop** in Play Mode to inspect the exact platform-specific path. The JSON envelope contains a payload and SHA-256 corruption check. Writes flush a unique staging file, then atomically replace the primary and retain a backup under an exclusive writer lock. No PlayerPrefs or cloud service is used. Invalid/corrupt/unsupported saves are preserved read-only; a valid backup can be recovered with explicit confirmation in the Editor Inspector, archiving the rejected primary.
+
+For upgrade QA without editing JSON or affecting real progress, select **M4 Workshop → QA: Temporary funded profile (no disk writes)**, then confirm. This gives a temporary 10,000-Coin profile. Buy upgrades, test them, then leave Play Mode to return to real progression. Neither temporary purchases nor its banked run rewards reach the local save. M2 temporary power/energy QA runs also cannot bank permanent earnings.
+
+**Tools → DrillRunner → Setup M4 Workshop** has already run. It is idempotent, preserves earlier scene references and tuning, and requires no manual wiring. Batch entry: `DrillRunner.Editor.WorkshopSetup.Setup` with the same Unity command pattern below. Automated M4 tests use memory stores or unique OS-temp directories, never the real game profile.
+
+See `Docs/M4-Validation.md` for implementation details, actual tests, limitations, and minimum manual QA. No M5 Evolution system is included.
 
 ## Repeatable setup
 
@@ -146,7 +172,7 @@ No setup runs automatically on import. Scene and prefab YAML are generated only 
 
 ## Testing
 
-Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. All original M0/M1/M2 tests remain unchanged. M3 adds seed/route/reward rules, streaming lifecycle, spawned drilling/Copper/Stone integration, cleanup, summary freezing, and accelerated travel beyond 30 km.
+Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. All original M0–M3 tests remain unchanged. M4 adds persistence, economy, banking, Workshop navigation, and upgraded gameplay tests. Tests use isolated stores, preserving the actual profile.
 
 Batch run (close this project in the Editor first; omit `-quit` because the test runner exits when finished):
 
@@ -159,4 +185,4 @@ Run those processes sequentially. Graphical tests capture 540 x 960 images under
 
 ## Source control
 
-Unity Force Text serialization, Visible Meta Files, `.gitignore`, and `.gitattributes` are retained. Version `Assets` with all `.meta` files, `Packages`, `ProjectSettings`, and documentation. Unity caches, local settings, builds, logs, and generated IDE projects are ignored. No commit, push, remote changes, or Git LFS setup are part of M3.
+Unity Force Text serialization, Visible Meta Files, `.gitignore`, and `.gitattributes` are retained. Version `Assets` with all `.meta` files, `Packages`, `ProjectSettings`, and documentation. Unity caches, local settings, builds, logs, and generated IDE projects are ignored. No commit, push, remote changes, or Git LFS setup are part of M4.

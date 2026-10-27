@@ -34,6 +34,7 @@ namespace DrillRunner
         public event Action<DrillObstacle> ObstacleRegistered;
         public event Action<DrillObstacle> ObstacleUnregistered;
         public event Action<DrillObstacle> ObstacleBroken;
+        public Func<bool> ResetGuard { get; set; }
 
         private void Awake()
         {
@@ -223,8 +224,10 @@ namespace DrillRunner
 
         public void ResetRun()
         {
+            if (ResetGuard != null && !ResetGuard()) return;
             var validatedSettings = drilling.Snapshot(); // Reject bad edits before changing an existing run.
-            Motion.Reset();
+            var nextMotion = new DrillMotion(settings, StartPosition);
+            Motion = nextMotion;
             transform.position = StartPosition;
             ResetDrilling(validatedSettings);
             if (initializationFailed)
@@ -233,6 +236,18 @@ namespace DrillRunner
                 enabled = true;
             }
             ResetPerformed?.Invoke();
+        }
+
+        public void ApplyAttributes(EffectiveAttributes attributes)
+        {
+            if (Motion.State != RunState.Ready && Motion.State != RunState.RunEnded)
+                throw new InvalidOperationException("Apply progression only between runs.");
+            var movement = settings.Snapshot(); var damage = drilling.Snapshot();
+            movement.CruiseSpeed = attributes.Cruise; movement.MinimumLaunchBoost = attributes.MinimumBoost;
+            movement.MaximumLaunchBoost = attributes.MaximumBoost; movement.ResumeAcceleration = attributes.Recovery;
+            damage.DrillPower = attributes.Power; damage.EnergyCapacity = attributes.Energy;
+            movement.Validate(); damage.Validate();
+            settings = movement; drilling = damage;
         }
     }
 }

@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c3155a180b4a88408fe723389ec9143, type: 3}
+  m_Name: PocketDrillProgression
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.ProgressionConfig
+  Power:
+    Costs: 3c00000064000000a0000000f000000054010000
+    Values:
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+  Energy:
+    Costs: 320000005a0000008c000000d20000002c010000
+    Values:
+    - 100
+    - 115
+    - 130
+    - 145
+    - 160
+    - 180
+  Drive:
+    Costs: 320000005a0000008c000000d20000002c010000
+    Values:
+    - 10
+    - 10.4
+    - 10.8
+    - 11.2
+    - 11.6
+    - 12
+  MinimumBoost:
+  - 2
+  - 2.2
+  - 2.4
+  - 2.6
+  - 2.8
+  - 3
+  MaximumBoost:
+  - 12
+  - 12
+  - 12
+  - 12
+  - 12
+  - 12
+  Recovery:
+  - 12
+  - 14
+  - 16
+  - 18
+  - 20
+  - 22

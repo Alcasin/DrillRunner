@@ -12,7 +12,7 @@ namespace DrillRunner.Editor
             var run = (RunProgress)target;
             if (Application.isPlaying && run.Rewards != null)
                 EditorGUILayout.LabelField("Active run seed", run.Rewards.Seed.ToString());
-            EditorGUILayout.HelpBox("M3 QA: seed changes apply on Restart. Fixed seed replays the same layout; random attempts use an independent seed source. No rewards are saved.", MessageType.Info);
+            EditorGUILayout.HelpBox("M3 QA: seed changes apply on debug Restart, which discards active-run earnings. Fixed seed replays the layout; normal completed runs bank rewards through M4.", MessageType.Info);
             using (new EditorGUI.DisabledScope(!Application.isPlaying))
             {
                 if (GUILayout.Button("QA: Replay configured seed")) Restart(true);

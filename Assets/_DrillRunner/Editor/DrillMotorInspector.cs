@@ -21,6 +21,8 @@ namespace DrillRunner.Editor
 
         private void Configure(float power, float energy)
         {
+            var workshop = UnityEngine.Object.FindFirstObjectByType<WorkshopController>();
+            if (workshop != null) { workshop.StartQaRun(power, energy); return; }
             serializedObject.Update();
             var settings = serializedObject.FindProperty("drilling");
             settings.FindPropertyRelative("DrillPower").floatValue = power;

@@ -21,6 +21,8 @@ namespace DrillRunner
         public int ConfiguredSeed { get => configuredSeed; set => configuredSeed = value; }
         public TrackStreamer Track => track;
         public DrillMotor Motor => motor;
+        public event Action<RunRewards> AttemptBegan;
+        public event Action<RunRewards> Completed;
 
         private readonly struct RewardBinding
         {
@@ -63,6 +65,7 @@ namespace DrillRunner
                 foreach (var obstacle in motor.RegisteredObstacles) Bind(obstacle);
                 if (motor.Motion.State == RunState.RunEnded) Rewards.Complete();
                 Debug.Log("DrillRunner attempt seed: " + seed, this);
+                AttemptBegan?.Invoke(Rewards);
             }
             catch (ArgumentException exception)
             {
@@ -87,7 +90,10 @@ namespace DrillRunner
         }
 
         private void Complete()
-        { Observe(); Rewards?.RecordForward(motor.Motion.Position.z); Rewards?.Complete(); }
+        {
+            Observe(); Rewards?.RecordForward(motor.Motion.Position.z); Rewards?.Complete();
+            if (Rewards != null) Completed?.Invoke(Rewards);
+        }
 
         private void Bind(DrillObstacle obstacle)
         {
