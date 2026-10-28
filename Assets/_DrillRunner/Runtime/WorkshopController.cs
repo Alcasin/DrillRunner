@@ -31,6 +31,7 @@ namespace DrillRunner
         public bool IsBanked { get; private set; }
         public bool IsSandbox { get; private set; }
         public bool IsEvolving => evolutionRemaining > 0;
+        public event Action<WorkshopFeedback> Feedback;
         public DrillVisuals Visuals => visuals;
         public EvolutionEligibility Evolution => Service.Evolution(CanPurchase);
         public string Message { get; private set; }
@@ -72,6 +73,7 @@ namespace DrillRunner
             evolutionRemaining = 0;
             Message = "WORKSHOP DRILL UNLOCKED\nNew stats and upgrades are ready!";
             if (refresh && view != null) { view.EvolutionPulse(1); view.Refresh(); }
+            if (refresh) Feedback?.Invoke(WorkshopFeedback.EvolutionCompleted);
         }
         public bool Evolve()
         {
@@ -79,7 +81,7 @@ namespace DrillRunner
             { if (!IsEvolving) { Message = error; view.Refresh(); } return false; }
             evolutionRemaining = 0.9f;
             if (visuals != null) visuals.Show(Service.ActiveForm);
-            Message = "EVOLVING · Assembling Workshop Drill..."; view.Refresh(); return true;
+            Message = "EVOLVING · Assembling Workshop Drill..."; view.Refresh(); Feedback?.Invoke(WorkshopFeedback.EvolutionStarted); return true;
         }
         private void Start()
         {
@@ -124,7 +126,7 @@ namespace DrillRunner
             input.enabled = false; input.Motor.Motion.CancelPointer(); IsOpen = true;
             if (Service.Writable && !PendingBank)
                 Message = IsSandbox ? "Temporary profile. Changes stay in memory." : "Choose upgrades, then Start Run.";
-            view.SetOpen(true); view.Refresh(); return true;
+            view.SetOpen(true); view.Refresh(); Feedback?.Invoke(WorkshopFeedback.Opened); return true;
         }
         public bool StartRun()
         {
@@ -139,13 +141,14 @@ namespace DrillRunner
             input.Restart();
             if (token == 0 || run.Rewards.IsCompleted) { view.Refresh(); return false; }
             IsOpen = false; view.SetOpen(false); input.enabled = true;
-            Message = "New run ready. Hold to charge and release to launch."; view.Refresh(); return true;
+            Message = "New run ready. Hold to charge and release to launch."; view.Refresh(); Feedback?.Invoke(WorkshopFeedback.StartedRun); return true;
         }
         public bool Purchase(UpgradeCategory category)
         {
             if (!CanPurchase) return false;
             var success = Service.TryPurchase(category, out var error);
-            Message = success ? "Upgrade saved. Applies on Start Run." : error; view.Refresh(); return success;
+            Message = success ? "Upgrade saved. Applies on Start Run." : error; view.Refresh();
+            if (success) Feedback?.Invoke(WorkshopFeedback.Purchased); return success;
         }
 #if UNITY_EDITOR
         public void StartQaRun(float power, float energy)

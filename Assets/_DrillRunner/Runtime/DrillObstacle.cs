@@ -17,6 +17,7 @@ namespace DrillRunner
         private BoxCollider Volume => volume != null ? volume : volume = GetComponent<BoxCollider>();
         public Bounds WorldBounds => DrillContacts.WorldBounds(Volume);
         public event Action<DrillObstacle> Broken;
+        public event Action Restored;
 
         private void Awake() => Restore();
 
@@ -38,6 +39,7 @@ namespace DrillRunner
             }
             Volume.enabled = true;
             intact.enabled = true;
+            Restored?.Invoke();
         }
 
         private void OnBroken()

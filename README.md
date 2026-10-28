@@ -2,7 +2,7 @@
 
 A portrait mobile 3D evolution runner built with **Unity 6000.3.8f1 (6.3 LTS)** and **Universal Render Pipeline 17.3.0**. The approved game has eight drill forms and four regions; the first vertical slice will cover one region and Form 1 to Form 2.
 
-**M5 completes Pocket Drill → Workshop Drill evolution and the persistent gameplay loop.** Max all three Pocket upgrade categories, collect **12 Copper**, then explicitly EVOLVE in Workshop. Workshop Drill has a distinct model, stronger starting stats, and its own upgrades. Existing M4 profiles are preserved. Stop here for M5 review; M6 is not started.
+**M6 gives the approved vertical slice a Premium Toy Industrial presentation:** refined drill models, mechanical animation, distinct obstacle surfaces, bounded particles, original synthesized sound, a cohesive yard, and polished portrait UI. Movement, hardness, rewards, upgrades, evolution, and saves retain their approved rules. Stop here for M6 review; M7 is not started.
 
 ## Open and inspect
 
@@ -25,8 +25,8 @@ All project-owned production assets live under `Assets/_DrillRunner/`:
 
 | Folder | Purpose |
 | --- | --- |
-| `Runtime/` | Existing M0–M3 gameplay plus progression model/configuration, file store, transaction service, and Workshop controller/view |
-| `Editor/` | Earlier milestone tooling, one M5 evolution setup command, power/energy, seed, and isolated development-profile Inspector controls |
+| `Runtime/` | Existing gameplay/progression plus bounded presentation audio/effects, drill animation, obstacle appearance, and HUD presentation |
+| `Editor/` | Earlier tooling, one M6 visual-polish setup command, procedural art/audio generation, and existing isolated QA Inspector controls |
 | `Tests/EditMode/` | Editor-only `DrillRunner.EditModeTests`, excluded from player builds |
 | `Tests/PlayMode/` | Runtime movement/input/UI/camera, drilling/contact/energy/restart integration tests |
 | `Scenes/`, `Settings/`, `Materials/` | Gameplay scene, unchanged gameplay input asset, URP prototype materials |
@@ -190,19 +190,39 @@ $unityEditor = 'C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Unity.exe'
 
 No setup runs automatically on import. Scene and prefab YAML are generated only by Unity. Replace the prefab's `Visuals` children for future art while retaining the movement root and configured footprint.
 
-## Testing
+## M6 setup
 
-Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. All original M0–M4 tests remain unchanged. M5 adds evolution eligibility/transactions, legacy migration, two-tier progression, visual switching, interrupted presentation, high-speed safety, and an unfunded guided gameplay loop. Tests use memory or unique OS-temp stores, preserving the actual profile. Use `Logs/M5-EditMode.xml` and `Logs/M5-PlayMode.xml` for current result filenames in the commands below.
+M6 is already wired. **Tools → DrillRunner → Setup M6 Visual Polish** is the single polish setup action; reruns preserve configured scene/assets and never access player saves. Initial setup renders model previews and needs a graphical Editor; an already configured scene can be verified without graphics. Batch entry: `DrillRunner.Editor.VisualPolishSetup.Setup`.
+
+## M6 visual identity and game feel
+
+Pocket Drill uses rounded orange painted parts, rubber tracks, ivory trim, and a silver fluted bit. Workshop Drill uses a reinforced teal hull, dark motor housing, metal armor, and copper rings. Shared generated meshes/materials keep silhouettes consistent; only the rotor and housing animate. Both retain the original logical footprint and one motor/input/camera. Charging escalates spin and the real meter; launch gives a short housing response; drilling adds restrained resistance motion. Blocked stops successful-drilling effects and uses a separate orange/text state and rejection sound.
+
+Wood uses warm planks/grain; Brick uses segmented masonry; Stone uses cool slate/veins; Copper Ore uses mineral teal with raised copper crystals. Existing durability/hardness/reward data is unchanged. Damage stages add local cracks/tint, then the intact renderers disappear immediately on the existing break event. Chips and the Copper toast observe authoritative events/ledger values and award nothing themselves.
+
+Workshop Yard has continuous matte deck/ground, cross-deck panel joints, narrow boundaries, and lightweight props outside the playable path. Geometry is combined by shared material. No lane restrictions, decorative colliders, new obstacles, or generation changes are introduced. Warm directional lighting, ambient fill, and distance fog improve depth; camera position, FOV, rotation, and smoothing remain unchanged. No shake or full-screen post-processing is added.
+
+Workshop, HUD, and Results use ivory cards, ink text, teal actions, and copper/gold emphasis. Resource totals, next stats/prices, MAX, evolution requirements, Power/Energy, charge, and results remain authoritative. A brief evolution glow follows the existing save-before-presentation transaction; skipping/reloading remains safe. Active-run RESET still discards unbanked QA attempt rewards; completed RETRY preserves banked balances.
+
+Ten original mono PCM sounds cover charge, launch, drilling, rejection, normal break, Copper break, Copper reward, purchase, evolution completion, and run finish. They are synthesized locally by Editor code; no sound library was downloaded. Material pitch variations use no gameplay randomness. Loops change once per state and stop on contact exit, Workshop, end, retry, focus loss, pause, or disable. There is **one loop source and four reusable one-shot voices**; new one-shots replace the oldest voice. Music is not included.
+
+VFX uses **one capped contact system and four reusable break systems**, with **112 particles maximum** in total. Wood splinters, brick/stone chips, and taller copper fragments vary in shape/color. No debris GameObjects, runtime meshes, material clones, physics fragments, or extra real-time lights are spawned. Sounds and particles never own currency or damage. The new `M6Presentation` asset holds sound/material/color references; particle settings remain editable on the authored systems.
+
+See `Docs/M6-Validation.md` for representative 9:16 renders, before/after evidence, exact test results, desktop profiler caveats, audio validation limits, and four focused manual QA checks. No mobile FPS or physical-device/audio-mix validation is claimed.
+
+## Automated verification
+
+Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. All original M0–M5 tests remain unchanged. M6 adds presentation-state, real charge, effects/reward separation, bounded cleanup, original waveform, setup, render, and desktop-counter checks. Tests use memory or unique OS-temp stores, preserving the actual profile. Use `Logs/M6-EditMode.xml` and `Logs/M6-PlayMode.xml` for current result filenames in the commands below.
 
 Batch run (close this project in the Editor first; omit `-quit` because the test runner exits when finished):
 
 ```powershell
-& $unityEditor -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -assemblyNames DrillRunner.EditModeTests -testResults Logs/M3-EditMode.xml -logFile Logs/M3-EditMode.log
-& $unityEditor -batchmode -projectPath . -runTests -testPlatform PlayMode -assemblyNames DrillRunner.PlayModeTests -testResults Logs/M3-PlayMode.xml -logFile Logs/M3-PlayMode.log
+& $unityEditor -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -assemblyNames DrillRunner.EditModeTests -testResults Logs/M6-EditMode.xml -logFile Logs/M6-EditMode.log
+& $unityEditor -batchmode -projectPath . -runTests -testPlatform PlayMode -assemblyNames DrillRunner.PlayModeTests -testResults Logs/M6-PlayMode.xml -logFile Logs/M6-PlayMode.log
 ```
 
 Run those processes sequentially. Graphical tests capture 540 x 960 images under `Logs/`; `-nographics` omits captures. Logs/results are ignored local files. See `Docs/M3-Validation.md` for executed results and minimum QA. Earlier validation reports record the accepted M0–M2 milestones.
 
 ## Source control
 
-Unity Force Text serialization, Visible Meta Files, `.gitignore`, and `.gitattributes` are retained. Version `Assets` with all `.meta` files, `Packages`, `ProjectSettings`, and documentation. Unity caches, local settings, builds, logs, and generated IDE projects are ignored. No commit, push, remote changes, or Git LFS setup are part of M5.
+Unity Force Text serialization, Visible Meta Files, `.gitignore`, and `.gitattributes` are retained. Version `Assets` with all `.meta` files, `Packages`, `ProjectSettings`, and documentation. Unity caches, local settings, builds, logs, and generated IDE projects are ignored. No commit, push, remote changes, or Git LFS setup are part of M6.

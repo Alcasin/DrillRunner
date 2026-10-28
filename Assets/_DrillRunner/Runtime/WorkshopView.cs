@@ -16,6 +16,9 @@ namespace DrillRunner
         [SerializeField] private Button evolve;
         [SerializeField] private Text requirements, formName;
         [SerializeField] private RawImage formPreview;
+        [SerializeField] private Text coinBalance, copperBalance;
+        [SerializeField] private Image evolutionGlow;
+        [SerializeField] private float workshopSaveTop = 846;
         private string previousMessage;
         private bool previousCompleted;
         public GameObject Panel => panel;
@@ -58,7 +61,8 @@ namespace DrillRunner
             {
                 var pulse = Mathf.Sin(Mathf.Clamp01(progress) * Mathf.PI);
                 formPreview.rectTransform.localScale = Vector3.one * (1 + 0.1f * pulse);
-                formPreview.color = Color.Lerp(Color.white, new Color(0.3f, 1, 1), pulse);
+                formPreview.color = Color.Lerp(Color.white, new Color(1, 0.86f, 0.5f), pulse * 0.35f);
+                if (evolutionGlow != null) evolutionGlow.color = new Color(1, 0.68f, 0.2f, pulse * 0.35f);
             }
         }
         public void SetOpen(bool value)
@@ -82,12 +86,15 @@ namespace DrillRunner
             if (controller.Service == null) return;
             var profile = controller.Service.Snapshot; var config = controller.Service.ActiveForm;
             balance.text = "COINS  " + profile.Coins + "       COPPER  " + profile.Copper;
+            if (coinBalance != null) coinBalance.text = profile.Coins.ToString();
+            if (copperBalance != null) copperBalance.text = profile.Copper.ToString();
             status.text = (controller.IsSandbox ? "DEVELOPMENT SANDBOX\n" : "") + controller.Message;
             banking.text = controller.Run.Rewards != null && controller.Run.Rewards.IsCompleted ? controller.Message : "";
             retrySave.gameObject.SetActive(controller.PendingBank);
             // Save remains reachable from the Workshop and results without allowing navigation to discard a pending bank.
             retrySave.transform.SetParent(controller.IsOpen ? panel.transform : gameplay.transform, false);
-            ((RectTransform)retrySave.transform).anchoredPosition = new Vector2(0, controller.IsOpen ? -846 : -530);
+            ((RectTransform)retrySave.transform).anchoredPosition = new Vector2(0, controller.IsOpen ? -workshopSaveTop : -530);
+            startRun.gameObject.SetActive(!controller.PendingBank);
             startRun.interactable = controller.Service.Writable && !controller.PendingBank && !controller.IsEvolving;
             if (formName != null) formName.text = config.DisplayName.ToUpperInvariant() + (profile.FormId == ProgressionConfig.PocketForm ? "  /  EVO 1" : "  /  EVO 2");
             if (formPreview != null) formPreview.texture = config.PreviewImage;

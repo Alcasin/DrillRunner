@@ -18,6 +18,7 @@ namespace DrillRunner
         [SerializeField] private Text summaryText;
         [SerializeField] private WorkshopController workshop;
         [SerializeField] private Text attributesText;
+        [SerializeField] private bool premiumSummary;
         private int shownEnergy = -1;
         private float shownPower = -1, shownCapacity = -1;
         private int displayedDistance = -1;
@@ -111,7 +112,8 @@ namespace DrillRunner
             {
                 displayedRun = run; displayedDistance = distance; displayedCoins = run.Coins; displayedCopper = run.Copper;
                 rewardText.text = distance + " m    COINS " + run.Coins + "    COPPER " + run.Copper;
-                summaryText.text = "RUN COMPLETE\n" + distance + " m  |  " + run.Coins + " Coins  |  " + run.Copper + " Copper";
+                summaryText.text = premiumSummary ? "<size=18>RUN COMPLETE</size>\n<size=40>" + distance + " m</size>\n<size=22>" + run.Coins + " Coins  ·  " + run.Copper + " Copper</size>" :
+                    "RUN COMPLETE\n" + distance + " m  |  " + run.Coins + " Coins  |  " + run.Copper + " Copper";
             }
             summaryText.gameObject.SetActive(run.IsCompleted);
         }
