@@ -17,6 +17,7 @@ namespace DrillRunner.Tests.PlayMode
         private WorkshopController flow;
         private DrillMotor motor;
         private PrototypeHud hud;
+        private TrackCatalog legacyCatalog;
         private const float Step = 1f / 120;
         [UnitySetUp] public IEnumerator Open()
         {
@@ -29,6 +30,7 @@ namespace DrillRunner.Tests.PlayMode
         [UnityTearDown] public IEnumerator Close()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene"); WorkshopController.StoreFactory = () => new MemoryProgressStore();
+            if (legacyCatalog != null) Object.Destroy(legacyCatalog);
             if (Directory.Exists(directory)) Directory.Delete(directory, true);
         }
         private void MaxPocket()
@@ -41,7 +43,10 @@ namespace DrillRunner.Tests.PlayMode
         private void Until(Func<bool> condition, int ticks = 5000)
         { for (var i = 0; i < ticks && !condition(); i++) motor.Simulate(Step); Assert.That(condition(), Is.True, "State=" + motor.Motion.State); }
         private void Isolate(DrillObstacle target, float z = 5)
-        { foreach (var obstacle in motor.Obstacles) obstacle.gameObject.SetActive(obstacle == target); target.transform.position = new Vector3(0, 1, z); }
+        {
+            if (!motor.RegisteredObstacles.Contains(target)) legacyCatalog = LegacyTemplateFixture.Restore(flow.Run.Track, hud);
+            foreach (var obstacle in motor.RegisteredObstacles) obstacle.gameObject.SetActive(obstacle == target); target.transform.position = new Vector3(0, 1, z);
+        }
         private void End() { motor.Energy.Consume(10000, 1); motor.Simulate(Step); }
 
         [UnityTest] public IEnumerator EvolutionUiShowsRequirementsAndRapidClicksOnlySpendCopperOnce()

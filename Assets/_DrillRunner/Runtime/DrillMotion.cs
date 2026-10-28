@@ -65,6 +65,8 @@ namespace DrillRunner
         private bool steeringEnabled = true;
 
         public RunState State { get; private set; }
+        public float SpeedCeiling => settings.MaximumSpeed;
+        public float SteeringResponse => settings.SteeringResponse;
         public Vector3 Position => new Vector3((float)x, start.y, (float)z);
         public float ChargeNormalized => (float)(chargeSeconds / settings.ChargeDuration);
         public float ForwardSpeed => State == RunState.Moving ? (float)(cruiseVelocity + boost) : 0;

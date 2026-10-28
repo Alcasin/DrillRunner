@@ -37,7 +37,10 @@ namespace DrillRunner.Tests.PlayMode
         private void Until(Func<bool> condition, int ticks = 6000)
         { for (var i = 0; i < ticks && !condition(); i++) motor.Simulate(Step); Assert.That(condition(), Is.True, "State=" + motor.Motion.State); }
         private void Isolate(DrillObstacle target, float z = 6)
-        { foreach (var obstacle in motor.RegisteredObstacles) obstacle.gameObject.SetActive(obstacle == target); target.gameObject.SetActive(true); target.transform.position = new Vector3(0, 1, z); }
+        {
+            if (!motor.RegisteredObstacles.Contains(target)) ownedCatalog = LegacyTemplateFixture.Restore(flow.Run.Track, hud);
+            foreach (var obstacle in motor.RegisteredObstacles) obstacle.gameObject.SetActive(obstacle == target); target.gameObject.SetActive(true); target.transform.position = new Vector3(0, 1, z);
+        }
         private DrillObstacle Copper()
         { flow.Run.Track.UpdateCoverage(1, null); return motor.RegisteredObstacles.First(o => o.Definition.MaterialId == "copper_ore"); }
         private void End() { motor.Energy.Consume(10000, 1); motor.Simulate(Step); }

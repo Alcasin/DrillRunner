@@ -9,6 +9,7 @@ namespace DrillRunner
     {
         [SerializeField] private DrillMotor motor;
         [SerializeField] private TrackCatalog catalog;
+        [SerializeField] private EncounterLibrary encounters;
         [SerializeField] private TrackSection[] starters = Array.Empty<TrackSection>();
         [SerializeField] private TrackSection[] starterTemplates = Array.Empty<TrackSection>();
         [SerializeField] private float aheadDistance = 200;
@@ -16,17 +17,31 @@ namespace DrillRunner
         private readonly List<TrackSection> active = new List<TrackSection>(12);
         private readonly HashSet<TrackSection> authored = new HashSet<TrackSection>();
         private SectionSequence sequence;
+        private EncounterSequence encounterSequence;
+        private readonly Dictionary<TrackSection, EncounterDefinition> encounterInstances = new Dictionary<TrackSection, EncounterDefinition>();
         private Transform generatedRoot;
         private float cursor;
         private float runLength, runAhead, runBehind;
         private TrackSection runFallback;
         private TrackSection[] variants;
         public TrackCatalog Catalog { get => catalog; set => catalog = value; }
+        public EncounterLibrary Encounters { get => encounters; set => encounters = value; }
+        public EncounterSequence EncounterPlan => encounterSequence;
+        public EncounterDefinition ActiveEncounter
+        {
+            get
+            {
+                foreach (var pair in encounterInstances)
+                    if (motor.transform.position.z >= pair.Key.StartZ && motor.transform.position.z < pair.Key.EndZ) return pair.Value;
+                return null;
+            }
+        }
         public IReadOnlyList<TrackSection> ActiveSections => active;
         public TrackSection[] StarterSections => starters;
         public float AheadDistance => aheadDistance;
         public float BehindDistance => behindDistance;
         public int GeneratedCount { get; private set; }
+        public float EncounterStartZ { get; private set; }
 
         public void Begin(int seed)
         {
@@ -38,11 +53,15 @@ namespace DrillRunner
                 starters == null || starters.Length == 0 || starterTemplates == null || starterTemplates.Length != starters.Length)
                 throw new ArgumentException("Track streaming needs compatible motor/catalog, starters, and camera-safe coverage.");
             var plan = new SectionSequence(seed, catalog, motor.Settings.FootprintHalfWidth);
+            var encounterPlan = encounters != null && encounters.Catalog == catalog ? new EncounterSequence(seed, encounters, EncounterEnvelope.From(motor)) : null;
+            var introductionCount = encounterPlan != null ? encounters.IntroductionSections : starters.Length;
+            if (introductionCount < 1 || introductionCount > starters.Length || (encounterPlan != null && (encounters.OpeningBufferSections < 0 || encounters.OpeningBufferSections > 4)))
+                throw new ArgumentException("Introduction and buffer must fit the authored startup configuration.");
             foreach (var template in starterTemplates)
                 if (!SectionSequence.IsSafe(template, catalog, motor.Settings.FootprintHalfWidth))
                     throw new ArgumentException("An authored starter template failed route validation.");
             Cleanup();
-            sequence = plan; GeneratedCount = 0; cursor = 0;
+            sequence = plan; encounterSequence = encounterPlan; GeneratedCount = 0; cursor = 0;
             variants = (TrackSection[])catalog.Variants.Clone(); runFallback = catalog.Fallback;
             runLength = catalog.SectionLength; runAhead = aheadDistance; runBehind = behindDistance;
             if (generatedRoot == null)
@@ -53,17 +72,21 @@ namespace DrillRunner
             for (var i = 0; i < starters.Length; i++)
             {
                 var section = starters[i];
-                if (section == null || Mathf.Abs(section.StartZ - cursor) > 0.001f ||
+                if (section == null || Mathf.Abs(section.StartZ - i * runLength) > 0.001f ||
                     Mathf.Abs(section.Length - catalog.SectionLength) > 0.001f || Mathf.Abs(section.Width - catalog.Width) > 0.001f)
                     throw new ArgumentException("Starter modules must form a connected course from Z=0.");
+                if (i >= introductionCount) { Unregister(section); section.gameObject.SetActive(false); continue; }
                 authored.Add(section); section.gameObject.SetActive(true); section.RestoreContent();
                 active.Add(section); Register(section); cursor = section.EndZ;
             }
             Spawn(runFallback, -runLength);
-            // One open buffer preserves the accepted opening and provides clear transitions.
+            if (encounterPlan != null)
+                for (var i = 0; i < encounters.OpeningBufferSections; i++) { Spawn(runFallback, cursor); cursor += runLength; }
+            EncounterStartZ = encounterPlan != null ? cursor : runAhead;
+            // Spawn coverage is independent of the distance where encounters begin.
             while (cursor < runAhead - 0.001f)
             {
-                Spawn(runFallback, cursor); cursor += runLength;
+                Spawn(encounterPlan != null ? NextPrefab() : runFallback, cursor); cursor += runLength;
             }
         }
 
@@ -77,12 +100,11 @@ namespace DrillRunner
             if (playerZ > cursor + runAhead)
             {
                 var windowStart = Mathf.Floor((playerZ - runBehind) / runLength) * runLength;
-                while (cursor < windowStart) { sequence.NextIndex(); cursor += runLength; }
+                while (cursor < windowStart) { NextPrefab(); cursor += runLength; }
             }
             while (cursor < playerZ + runAhead - 0.001f)
             {
-                var index = sequence.NextIndex();
-                var prefab = index < 0 ? runFallback : variants[index];
+                var prefab = NextPrefab();
                 Spawn(prefab, cursor); cursor += runLength;
             }
             for (var i = active.Count - 1; i >= 0; i--)
@@ -90,7 +112,7 @@ namespace DrillRunner
                 var section = active[i];
                 if (section.EndZ >= playerZ - runBehind || (protectedTarget != null && section.Contains(protectedTarget)) ||
                     (playerZ >= section.StartZ && playerZ < section.EndZ)) continue;
-                Unregister(section); active.RemoveAt(i); section.gameObject.SetActive(false);
+                Unregister(section); encounterInstances.Remove(section); active.RemoveAt(i); section.gameObject.SetActive(false);
                 if (!authored.Contains(section)) Destroy(section.gameObject);
             }
         }
@@ -100,6 +122,14 @@ namespace DrillRunner
             var section = Instantiate(prefab, new Vector3(0, 0, z), Quaternion.identity, generatedRoot);
             section.name = prefab.SectionId + " @ " + z.ToString("0");
             section.RestoreContent(); active.Add(section); Register(section); GeneratedCount++;
+            if (encounterSequence != null && encounterSequence.Selected != null && encounterSequence.Selected.Section == prefab)
+                encounterInstances[section] = encounterSequence.Selected;
+        }
+
+        private TrackSection NextPrefab()
+        {
+            if (encounterSequence != null) return encounterSequence.Next();
+            var index = sequence.NextIndex(); return index < 0 ? runFallback : variants[index];
         }
 
         private void Register(TrackSection section)
@@ -115,7 +145,7 @@ namespace DrillRunner
                 Unregister(section); section.gameObject.SetActive(false);
                 if (!authored.Contains(section)) Destroy(section.gameObject);
             }
-            active.Clear();
+            active.Clear(); encounterInstances.Clear();
         }
 
         private void OnDestroy() { if (motor != null) Cleanup(); }

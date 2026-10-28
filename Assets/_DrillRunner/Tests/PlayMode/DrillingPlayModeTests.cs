@@ -18,6 +18,7 @@ namespace DrillRunner.Tests.PlayMode
         private PrototypeHud hud;
         private RunnerCamera follower;
         private DrillObstacle wood, brick, stone;
+        private TrackCatalog legacyCatalog;
         private const float Step = 1f / 120;
 
         [UnitySetUp]
@@ -31,10 +32,10 @@ namespace DrillRunner.Tests.PlayMode
             motor.enabled = false; // Tests drive the authoritative motor clock explicitly.
             motor.GetComponent<DrillPointerInput>().enabled = false;
             wood = motor.Obstacles[0]; brick = motor.Obstacles[1]; stone = motor.Obstacles[2];
-            motor.ResetRun();
+            legacyCatalog = LegacyTemplateFixture.Restore(Object.FindFirstObjectByType<TrackStreamer>(), hud);
         }
 
-        [UnityTearDown] public IEnumerator CloseScene() { yield return SceneManager.LoadSceneAsync("SampleScene"); }
+        [UnityTearDown] public IEnumerator CloseScene() { yield return SceneManager.LoadSceneAsync("SampleScene"); if (legacyCatalog != null) Object.Destroy(legacyCatalog); }
 
         private void Advance(float seconds)
         {

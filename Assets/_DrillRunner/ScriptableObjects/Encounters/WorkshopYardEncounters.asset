@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b60dce250862a843adefa2670c041a9, type: 3}
+  m_Name: WorkshopYardEncounters
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.EncounterLibrary
+  Catalog: {fileID: 11400000, guid: b7a645e113e2b954d9088c8c0871b3cd, type: 2}
+  Patterns:
+  - {fileID: 11400000, guid: 44887821bb95d8543a26f3afeb786899, type: 2}
+  - {fileID: 11400000, guid: e0ad7da5569888747bf7216a183f81be, type: 2}
+  - {fileID: 11400000, guid: bb06856b5e9592e44b17ba4fc1ca9572, type: 2}
+  - {fileID: 11400000, guid: 298644090aaccf24f8764a7ba3ccac64, type: 2}
+  - {fileID: 11400000, guid: d620a3f43ed4d6740b0a5bf2204a7416, type: 2}
+  - {fileID: 11400000, guid: 1b50ffa2a7a9b8346a4f9e4885929c37, type: 2}
+  - {fileID: 11400000, guid: 516ba5142ab9d28418213212ce0d78dd, type: 2}
+  - {fileID: 11400000, guid: 2f337d417074af548884e3b7d575f24c, type: 2}
+  - {fileID: 11400000, guid: 73f7661f77e075e4bb3eb2dd7a6fc7b6, type: 2}
+  - {fileID: 11400000, guid: 96669f63a65c9414c96d4d1265bb1133, type: 2}
+  - {fileID: 11400000, guid: 01f2490a343584f49a385187c2be597c, type: 2}
+  - {fileID: 11400000, guid: 0400b8ca723cf3144887d27392f4b229, type: 2}
+  - {fileID: 11400000, guid: 4cf2e868cc699964d83d04ec848774fa, type: 2}
+  - {fileID: 11400000, guid: fe2e444afa337f847a5cdc45b7ece631, type: 2}
+  IntroductionSections: 1
+  OpeningBufferSections: 0
+  FirstSelectionCopper: 0
+  CalmFirstEncounter: 1
+  ReliefAfterHighPressure: 1
+  ArrangementMemory: 2
+  EmptyRecoverySpacing: 4
+  Revision: 2
+  EarlySections: 3
+  RicherFromSection: 20
+  MaximumCopperGap: 3
+  MaximumRecoveryGap: 6
+  MaximumConsecutivePressure: 1
+  ReactionSeconds: 0.35
+  SteeringTolerance: 0.04
+  StartingOreEnergyBudget: 60

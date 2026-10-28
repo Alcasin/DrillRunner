@@ -18,6 +18,7 @@ namespace DrillRunner.Tests.PlayMode
         private DrillMotor motor;
         private DrillPresentation presentation;
         private PrototypeHud hud;
+        private TrackCatalog legacyCatalog;
         [UnitySetUp] public IEnumerator Open()
         {
             WorkshopController.StoreFactory = () => new MemoryProgressStore(new PlayerProgress { Coins = 10000, Copper = 24 });
@@ -27,13 +28,14 @@ namespace DrillRunner.Tests.PlayMode
             hud = Object.FindFirstObjectByType<PrototypeHud>(); presentation.SendMessage("OnApplicationFocus", true);
         }
         [UnityTearDown] public IEnumerator Close()
-        { yield return SceneManager.LoadSceneAsync("SampleScene"); WorkshopController.StoreFactory = () => new MemoryProgressStore(); }
+        { yield return SceneManager.LoadSceneAsync("SampleScene"); WorkshopController.StoreFactory = () => new MemoryProgressStore(); if (legacyCatalog != null) Object.Destroy(legacyCatalog); }
         private void Launch() { motor.Motion.Press(); motor.Simulate(1.5f); motor.Motion.Release(); motor.Simulate(0.01f); }
         private void Until(Func<bool> condition)
         { for (var i = 0; i < 6000 && !condition(); i++) motor.Simulate(1f / 120); Assert.That(condition(), Is.True); }
         private DrillObstacle Target(string id)
         {
-            flow.Run.Track.UpdateCoverage(1, null); var target = motor.RegisteredObstacles.First(o => o.Definition.MaterialId == id);
+            flow.Run.Track.UpdateCoverage(1, null); var target = motor.RegisteredObstacles.FirstOrDefault(o => o.Definition.MaterialId == id);
+            if (target == null) { legacyCatalog = LegacyTemplateFixture.Restore(flow.Run.Track, hud); flow.Run.Track.UpdateCoverage(1, null); target = motor.RegisteredObstacles.First(o => o.Definition.MaterialId == id); }
             foreach (var obstacle in motor.RegisteredObstacles) obstacle.gameObject.SetActive(obstacle == target);
             target.gameObject.SetActive(true); target.transform.position = new Vector3(0, 1, 6); return target;
         }

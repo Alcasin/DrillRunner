@@ -53,6 +53,7 @@ namespace DrillRunner.Tests.PlayMode
         }
         private void Isolate(DrillObstacle target)
         {
+            if (!motor.RegisteredObstacles.Contains(target)) ownedCatalog = LegacyTemplateFixture.Restore(flow.Run.Track, hud);
             foreach (var obstacle in motor.Obstacles) obstacle.gameObject.SetActive(obstacle == target);
             target.transform.position = new Vector3(0, 1, 5);
         }

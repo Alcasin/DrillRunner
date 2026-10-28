@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f468e1128485ffb49ae64c82d8be0f7a, type: 3}
+  m_Name: RecoveryOre
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.EncounterDefinition
+  Section: {fileID: 1387908076659790574, guid: fbf3c295dfe5a3246bca5e23e4d3fbde, type: 3}
+  Category: 5
+  Arrangement: 2
+  Intent: Low-pressure open deck with one optional Ore. Supports reward cadence without
+    forcing a costly guard.
+  Pressure: 0
+  MinimumOrdinal: 2
+  EarlyWeight: 1
+  Weight: 1
+  LateWeight: 1
+  BypassX: -2.05

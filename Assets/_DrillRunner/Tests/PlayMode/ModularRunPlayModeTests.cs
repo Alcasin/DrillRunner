@@ -90,7 +90,7 @@ namespace DrillRunner.Tests.PlayMode
                 hud.Restart(); yield return null;
                 Assert.That(track.ActiveSections.Count, Is.EqualTo(6));
                 Assert.That(Object.FindObjectsByType<TrackSection>(FindObjectsSortMode.None).Length, Is.EqualTo(6));
-                Assert.That(motor.RegisteredObstacles.Count, Is.EqualTo(4));
+                Assert.That(motor.RegisteredObstacles, Is.EquivalentTo(track.ActiveSections.SelectMany(s => s.Obstacles)), "Every active target, and no archived target, must be registered after Retry.");
             }
         }
 
@@ -187,6 +187,7 @@ namespace DrillRunner.Tests.PlayMode
             motor.enabled = false;
             Launch(); motor.Simulate(0.5f); Assert.That(run.Rewards.Distance, Is.GreaterThan(0)); hud.Restart();
             Launch(); Until(() => motor.Motion.State == RunState.Drilling); hud.Restart();
+            var legacy = LegacyTemplateFixture.Restore(track, hud); if (legacy != null) owned.Add(legacy);
             foreach (var obstacle in motor.Obstacles) obstacle.gameObject.SetActive(obstacle == motor.Obstacles[2]);
             motor.Obstacles[2].transform.position = new Vector3(0, 1, 5);
             Launch(); Until(() => motor.Motion.State == RunState.Blocked); hud.Restart();

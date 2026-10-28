@@ -924,6 +924,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.TrackStreamer
   motor: {fileID: 242852123}
   catalog: {fileID: 11400000, guid: b7a645e113e2b954d9088c8c0871b3cd, type: 2}
+  encounters: {fileID: 11400000, guid: 40ee36f45b41e2343b1f11d9b220dc0b, type: 2}
   starters:
   - {fileID: 6247342691536016458}
   - {fileID: 1052825341107897292}

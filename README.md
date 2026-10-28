@@ -2,7 +2,7 @@
 
 A portrait mobile 3D evolution runner built with **Unity 6000.3.8f1 (6.3 LTS)** and **Universal Render Pipeline 17.3.0**. The approved game has eight drill forms and four regions; the first vertical slice will cover one region and Form 1 to Form 2.
 
-**M6 gives the approved vertical slice a Premium Toy Industrial presentation:** refined drill models, mechanical animation, distinct obstacle surfaces, bounded particles, original synthesized sound, a cohesive yard, and polished portrait UI. Movement, hardness, rewards, upgrades, evolution, and saves retain their approved rules. Stop here for M6 review; M7 is not started.
+**M7-B brings encounter choices into the early Workshop Yard run:** a 40-meter introduction, 14 patterns across six categories, deterministic pacing, and readable safe/Copper alternatives. The M6-B presentation, continuous steering, hardness, Energy, rewards, upgrades, evolution, and saves retain their approved rules. Stop here for M7-B review; M8 and Android/release work are not started.
 
 ## Open and inspect
 
@@ -13,7 +13,7 @@ A portrait mobile 3D evolution runner built with **Unity 6000.3.8f1 (6.3 LTS)** 
 
 The Editor keeps this direct gameplay entry for M0–M3 development QA. Click **WORKSHOP** while Ready or after a completed run. Player builds open Workshop first. **START RUN** applies purchased stats immediately; hold/release still launches the drill. Completed-run Retry preserves banked balances. **QA RESET during an active attempt discards its unbanked earnings**. No Editor restart is needed to apply purchases.
 
-Forward remains **+Z**, steering **X**, and track height **Y = 0**. The accepted M2 opening is now four connected authored modules: Wood at Z=35, Brick at Z=65, Stone at Z=95, and Wood at Z=130. Beyond an open transition buffer, seeded Workshop Yard sections continue indefinitely. Energy limits normal run duration. The old 20 km slab/guides remain inactive reference objects and provide no gameplay surface or collision.
+Forward remains **+Z**, steering **X**, and track height **Y = 0**. Normal M7-B uses the first 40-meter starter with Wood at Z=35, then seeded encounters from Z=40. The other three original starter modules remain available for legacy QA and are inactive during normal play. Energy limits normal run duration. The old 20 km slab/guides remain inactive reference objects and provide no gameplay surface or collision.
 
 Portrait orientation and a 540 x 960 default player window remain configured. The Windows build target is retained; Android has not been selected. If the local aspect preference is missing on another machine: **Game View > aspect dropdown > + > Aspect Ratio > 9 by 16**, label it **Portrait 9:16**, save and select.
 
@@ -30,7 +30,7 @@ All project-owned production assets live under `Assets/_DrillRunner/`:
 | `Tests/EditMode/` | Editor-only `DrillRunner.EditModeTests`, excluded from player builds |
 | `Tests/PlayMode/` | Runtime movement/input/UI/camera, drilling/contact/energy/restart integration tests |
 | `Scenes/`, `Settings/`, `Materials/` | Gameplay scene, unchanged gameplay input asset, URP prototype materials |
-| `Prefabs/`, `Models/` | Drill/four obstacle prefabs, 11 authored `TrackSections/` prefabs, archived distance-mark mesh |
+| `Prefabs/`, `Models/` | Drill/four obstacle prefabs, 11 preserved `TrackSections/` prefabs, 14 new `Encounters/` prefabs, shared presentation meshes |
 | `ScriptableObjects/` | Wood/Brick/Stone/Copper Ore definitions and Workshop Yard track catalog |
 | `Textures/`, `Audio/`, `VFX/`, `UI/` | Asset destinations reserved for later milestones |
 
@@ -113,11 +113,11 @@ These buttons exist only in the Editor, reset the complete run, and revert on le
 
 All modules are **6 units wide × 40 units long**, with entrance at local Z=0 and exit at Z=40. The four starter prefabs preserve the accepted opening. Seven streamed variants provide Open, offset Wood, offset Brick, Mixed, Stone Bypass, Copper, and Risk/Reward encounters. They use the same M2 obstacle components and collision rules; steering remains continuous.
 
-`TrackStreamer` keeps **200 units ahead** and **80 behind**, initially including an open rear section for the camera and an open section at Z=160–200. Seeded variants begin at Z=200. It creates one section roughly every four seconds at cruise, unregisters/deactivates retired sections, and destroys generated ones. The four authored starter roots are retained inactive for clean replay. Default active section counts remain at or below 10, including a protected interaction. No large pooling framework or giant replacement track is used. Streaming stops after RunEnded and pauses automatic extension while the motor component is disabled for manual simulation.
+`TrackStreamer` keeps **200 units ahead** and **80 behind**, including an open rear section for the camera. Normal M7-B prefills actual encounters from Z=40; spawn-ahead coverage does not delay their start. An explicit legacy catalog override retains the original four starters and Z=160–200 buffer. It creates one section roughly every four seconds at cruise, unregisters/deactivates retired sections, and destroys generated ones. Authored starter roots are retained for clean replay. Default active section counts remain at or below 10, including a protected interaction. No large pooling framework or giant replacement track is used. Streaming stops after RunEnded and pauses automatic extension while the motor component is disabled for manual simulation.
 
 `TrackSafety` validates complete-footprint routes, central alignment for drillable materials, real Stone bypasses, nonoverlapping placements, transition clearances, and reachable Copper at initial power 5. The validator constructs a conservative constant-X route certificate rather than accepting visual gaps. Catalog variants have clearance for changing routes between sections. An unsafe selected variant becomes the known-safe Open fallback; an invalid fallback/catalog stops the attempt with an error.
 
-The run uses a private xorshift sequence, independent of Unity's global random state. On **M3 Workshop Run > RunProgress**, fixed seed **1337** is enabled by default. Edit **Configured Seed**, then use **QA: Replay configured seed** to reproduce it, or **QA: New random seed** for a fresh attempt. The active seed appears in the Inspector and Console. Matching seeds require unchanged catalog/material configuration. The first procedural section and every third selection thereafter offer reachable Copper.
+The run uses a private xorshift sequence, independent of Unity's global random state. On **M3 Workshop Run > RunProgress**, fixed seed **1337** is enabled by default. Edit **Configured Seed**, then use **QA: Replay configured seed** to reproduce it, or **QA: New random seed** for a fresh attempt. The active seed appears in the Inspector and Console. Matching seeds require unchanged catalog/material/pacing configuration. Normal M7-B offers Copper within three encounter selections; explicit legacy selection retains its original Copper schedule.
 
 | Reward source | Per-run payout |
 | --- | --- |
@@ -210,19 +210,31 @@ VFX uses **one capped contact system and four reusable break systems**, with **1
 
 See `Docs/M6-Validation.md` for representative 9:16 renders, before/after evidence, exact test results, desktop profiler caveats, audio validation limits, and four focused manual QA checks. No mobile FPS or physical-device/audio-mix validation is claimed.
 
+## M7 / M7-B encounter variety
+
+Run **Tools > DrillRunner > Setup M7 Gameplay Variety** to validate/integrate the authored library. The Gameplay scene is already wired; setup migrates the existing M7 assets to revision 2, then reruns validate without writes. One 40-meter starter introduces the drill; encounter sections begin at Z=40, with multi-target choices around Z=60 and Copper before Z=150. The first three selections avoid Stone; the full vocabulary is eligible from the fourth section at Z=160. These phases follow section ordinals rather than movement-coordinate gates.
+
+The six categories are **Easy Flow**, **Dense Drilling**, **Risk/Reward**, **Precision Escape**, **Power Test**, and **Recovery**. Left/right variants are arrangements, not lanes. Flow arcs, dense clusters, simultaneous Wood/Ore choices, and staggered Stone vary the silhouette. Guarded Copper now has a separate cheap Wood option: at Power 5, Wood costs 11.2 drilling Energy versus 51.6 for Brick plus Ore. A collision-free bypass remains available. Other patterns retain unguarded Ore. Recovery provides lower pressure without Energy regeneration; Stone still requires Power 9.
+
+`ScriptableObjects/Encounters/WorkshopYardEncounters.asset` holds the existing catalog reference, 14 pattern definitions, weights, pacing limits, and reaction/steering allowances. Each definition references an authored section prefab and an open-bypass witness. Mining routes are certified at starting Power. Entry/transition checks use the full footprint and steering response, with maximum accepted speed 26; they establish available choices under stated reaction assumptions, not safety for arbitrary input. The complete validation and limitations are in `Docs/M7-Validation.md`.
+
+Selection prevents consecutive identical categories, remembers the last two arrangement families, follows high pressure with pressure-zero relief, offers Copper within three selections, and includes Recovery within six. Empty Recovery has at least four intervening selections. Family memory can relax when required to honor safety/resource/pacing rules. The first encounter is calm; later weights favor some richer arrangements without changing material stats or automatically scaling difficulty with Power. The existing `TrackStreamer` owns all spawning/registration/cleanup. Inspector diagnostics on `RunProgress` show the current encounter, seed, validation/fallback counts, and existing replay buttons.
+
+The original catalog and 11 legacy sections remain intact. An explicit runtime assignment of a different legacy catalog uses that catalog's original selection unless a matching encounter library is also assigned. This preserves existing controlled-content QA and authoring overrides; normal Gameplay uses M7.
+
 ## Automated verification
 
-Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. All original M0–M5 tests remain unchanged. M6 adds presentation-state, real charge, effects/reward separation, bounded cleanup, original waveform, setup, render, and desktop-counter checks. Tests use memory or unique OS-temp stores, preserving the actual profile. Use `Logs/M6-EditMode.xml` and `Logs/M6-PlayMode.xml` for current result filenames in the commands below.
+Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. All 203 M0–M7 regressions remain, with narrow fixture adaptations for the shorter opening documented in `Docs/M7-Validation.md`. M7-B adds ten checks for early choices, cadence, routes, frozen-M7 comparisons, progression, and natural runtime captures. Tests use memory or unique OS-temp stores, preserving the actual profile. Current results: **139 EditMode / 74 PlayMode passed**, with no failures or skips. See the M7-B revision section of `Docs/M7-Validation.md` for evidence and limits.
 
 Batch run (close this project in the Editor first; omit `-quit` because the test runner exits when finished):
 
 ```powershell
-& $unityEditor -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -assemblyNames DrillRunner.EditModeTests -testResults Logs/M6-EditMode.xml -logFile Logs/M6-EditMode.log
-& $unityEditor -batchmode -projectPath . -runTests -testPlatform PlayMode -assemblyNames DrillRunner.PlayModeTests -testResults Logs/M6-PlayMode.xml -logFile Logs/M6-PlayMode.log
+& $unityEditor -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -assemblyNames DrillRunner.EditModeTests -testResults Logs/M7B-EditMode.xml -logFile Logs/M7B-EditMode.log
+& $unityEditor -batchmode -projectPath . -runTests -testPlatform PlayMode -assemblyNames DrillRunner.PlayModeTests -testResults Logs/M7B-PlayMode.xml -logFile Logs/M7B-PlayMode.log
 ```
 
 Run those processes sequentially. Graphical tests capture 540 x 960 images under `Logs/`; `-nographics` omits captures. Logs/results are ignored local files. See `Docs/M3-Validation.md` for executed results and minimum QA. Earlier validation reports record the accepted M0–M2 milestones.
 
 ## Source control
 
-Unity Force Text serialization, Visible Meta Files, `.gitignore`, and `.gitattributes` are retained. Version `Assets` with all `.meta` files, `Packages`, `ProjectSettings`, and documentation. Unity caches, local settings, builds, logs, and generated IDE projects are ignored. No commit, push, remote changes, or Git LFS setup are part of M6.
+Unity Force Text serialization, Visible Meta Files, `.gitignore`, and `.gitattributes` are retained. Version `Assets` with all `.meta` files, `Packages`, `ProjectSettings`, and documentation. Unity caches, local settings, builds, logs, and generated IDE projects are ignored. No commit, push, remote changes, or Git LFS setup are part of M7/M7-B.
