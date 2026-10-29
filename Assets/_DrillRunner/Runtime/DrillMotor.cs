@@ -35,6 +35,9 @@ namespace DrillRunner
         public event Action<DrillObstacle> ObstacleUnregistered;
         public event Action<DrillObstacle> ObstacleBroken;
         public Func<bool> ResetGuard { get; set; }
+#if UNITY_EDITOR
+        public RunDiagnostics Diagnostics { get; private set; }
+#endif
 
         private void Awake()
         {
@@ -102,10 +105,14 @@ namespace DrillRunner
                         continue;
                     }
                     var target = ContactTarget.Durability;
+                    var drillingRate = DrillingEnergyRate(target.EnergyRate);
                     var duration = Math.Min(seconds, Math.Min(target.TimeToBreak(runSettings.DrillPower, runSettings.DamagePerPower),
-                        Energy.TimeUntilEmpty(target.EnergyRate)));
+                        Energy.TimeUntilEmpty(drillingRate)));
                     target.Drill(runSettings.DrillPower, runSettings.DamagePerPower, duration);
-                    Energy.Consume(target.EnergyRate, duration);
+                    Energy.Consume(drillingRate, duration);
+#if UNITY_EDITOR
+                    Diagnostics.Record(RunState.Drilling, duration, drillingRate);
+#endif
                     seconds -= duration;
                     if (Energy.IsEmpty) { FinishRun(); return; }
                     if (target.IsDestroyed)
@@ -121,6 +128,9 @@ namespace DrillRunner
                     var duration = Math.Min(seconds, Energy.TimeUntilEmpty(rate));
                     MoveWithContacts((float)duration, blocked);
                     Energy.Consume(rate, duration); // Exactly the state's rate, never movement + drilling together.
+#if UNITY_EDITOR
+                    Diagnostics.Record(blocked ? RunState.Blocked : RunState.Moving, duration, rate);
+#endif
                     seconds -= duration;
                     if (Energy.IsEmpty) { FinishRun(); return; }
                 }
@@ -157,6 +167,10 @@ namespace DrillRunner
             transform.position = Motion.Position;
             if (hit != null)
             {
+#if UNITY_EDITOR
+                if (ContactTarget != hit) Diagnostics.Contacts++;
+                if (Diagnostics.FirstContactSeconds < 0) Diagnostics.FirstContactSeconds = Diagnostics.Seconds + seconds;
+#endif
                 ContactTarget = hit;
                 var tip = TipPosition();
                 var drillable = hit.Durability != null && runSettings.DrillPower >= hit.Durability.Hardness &&
@@ -173,7 +187,12 @@ namespace DrillRunner
         private void FinishRun()
         {
             if (Motion.EndRun())
+            {
+#if UNITY_EDITOR
+                Diagnostics.EndedByEnergy = Energy.IsEmpty;
+#endif
                 RunEnded?.Invoke();
+            }
         }
 
         private Vector3 TipPosition()
@@ -187,6 +206,9 @@ namespace DrillRunner
         {
             runSettings = validatedSettings ?? drilling.Snapshot();
             Energy = new RunEnergy(runSettings.EnergyCapacity);
+#if UNITY_EDITOR
+            Diagnostics = new RunDiagnostics();
+#endif
             ContactTarget = null;
             foreach (var obstacle in registered)
                 if (obstacle != null)
@@ -213,7 +235,13 @@ namespace DrillRunner
             ObstacleUnregistered?.Invoke(obstacle);
         }
 
-        private void OnObstacleBroken(DrillObstacle obstacle) => ObstacleBroken?.Invoke(obstacle);
+        private void OnObstacleBroken(DrillObstacle obstacle)
+        {
+#if UNITY_EDITOR
+            Diagnostics.Destroyed++;
+#endif
+            ObstacleBroken?.Invoke(obstacle);
+        }
 
         private void OnDestroy()
         {
@@ -249,6 +277,21 @@ namespace DrillRunner
             damage.DrillPower = attributes.Power; damage.EnergyCapacity = attributes.Energy;
             movement.Validate(); damage.Validate();
             settings = movement; drilling = damage;
+        }
+        public float DrillingEnergyRate(float materialRate)
+        {
+            DrillRules.NonNegative(materialRate, nameof(materialRate));
+            var tuning = runSettings ?? drilling;
+            return tuning.DrillingBaseEnergyPerSecond + materialRate * tuning.DrillingMaterialScale;
+        }
+        public void ApplyConsumption(FormConsumption profile, float chargeSeconds, float boostDecay = 1.8f)
+        {
+            if (Motion.State != RunState.Ready && Motion.State != RunState.RunEnded) throw new InvalidOperationException("Apply consumption only between runs.");
+            profile.Validate(); DrillMovementSettings.Positive(chargeSeconds, nameof(chargeSeconds)); DrillMovementSettings.Positive(boostDecay, nameof(boostDecay));
+            var damage = drilling.Snapshot(); var movement = settings.Snapshot();
+            damage.MovingEnergyPerSecond = profile.Moving; damage.BlockedEnergyPerSecond = profile.Blocked;
+            damage.DrillingBaseEnergyPerSecond = profile.DrillingBase; damage.DrillingMaterialScale = profile.MaterialScale;
+            movement.ChargeDuration = chargeSeconds; movement.BoostDecayRate = boostDecay; damage.Validate(); movement.Validate(); drilling = damage; settings = movement;
         }
     }
 }

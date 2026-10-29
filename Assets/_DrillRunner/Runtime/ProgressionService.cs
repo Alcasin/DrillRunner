@@ -21,7 +21,7 @@ namespace DrillRunner
             this.store = store ?? throw new ArgumentNullException(nameof(store));
             this.config = config ?? throw new ArgumentNullException(nameof(config)); config.Validate();
             var loaded = store.Load(); current = loaded.Progress.Copy(); Writable = loaded.Writable; Status = loaded.Message;
-            try { current.Validate(config); current.FormSchema = 1; } // M4 migration is additive and does not write until a normal transaction.
+            try { current.Validate(config); current.FormSchema = 1; current.EvolutionSchema = 1; current.AdvancedForms = current.AdvancedForms ?? Array.Empty<FormUpgradeRecord>(); } // Additive migration; no disk rewrite on load.
             catch (ArgumentException exception) { current = new PlayerProgress(); Writable = false; Status = exception.Message; }
         }
 
@@ -61,16 +61,15 @@ namespace DrillRunner
             var form = ActiveForm; var next = form.NextForm;
             var power = current.Level(UpgradeCategory.DrillPower); var energy = current.Level(UpgradeCategory.EnergyCapacity); var drive = current.Level(UpgradeCategory.DrivePower);
             return new EvolutionEligibility(power, form.Power.MaximumLevel, energy, form.Energy.MaximumLevel, drive, form.Drive.MaximumLevel,
-                current.Copper, next != null ? form.EvolutionCopper : 0, next != null ? next.DisplayName : null, Writable && workshopAllowed);
+                current, next != null ? form.RequiredResources : Array.Empty<ResourceCost>(), next != null ? next.DisplayName : null, Writable && workshopAllowed);
         }
 
         public bool TryEvolve(bool workshopAllowed, out string error)
         {
             var eligibility = Evolution(workshopAllowed); error = eligibility.Description;
             if (!eligibility.Ready) return false;
-            var next = current.Copy(); next.Copper -= ActiveForm.EvolutionCopper;
-            next.FormId = ActiveForm.NextForm.FormId; next.FormSchema = 1;
-            next.WorkshopPowerLevel = next.WorkshopEnergyLevel = next.WorkshopDriveLevel = 0;
+            var next = current.Copy(); foreach (var cost in ActiveForm.RequiredResources) next.Spend(cost);
+            next.EnterForm(ActiveForm.NextForm.FormId);
             return Commit(next, out error);
         }
 

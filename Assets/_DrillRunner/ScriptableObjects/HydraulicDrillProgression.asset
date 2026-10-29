@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c3155a180b4a88408fe723389ec9143, type: 3}
+  m_Name: HydraulicDrillProgression
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.ProgressionConfig
+  FormId: hydraulic_drill
+  DisplayName: Hydraulic Drill
+  VisualPrefab: {fileID: 7076347464305634990, guid: b40c2611a12ddff49a7915f818dbc5e5, type: 3}
+  PreviewImage: {fileID: 2800000, guid: 8bfa0646c0dc775489d9f037ae5961d1, type: 3}
+  NextForm: {fileID: 11400000, guid: d19ff6d516cf9674e9c3fc6e002e5867, type: 2}
+  EvolutionCopper: 0
+  EvolutionResources:
+  - Resource: 2
+    Amount: 40
+  SpeedCeiling: 26
+  Power:
+    Costs: 4c040000dc05000034080000f00a0000740e0000
+    Values:
+    - 52
+    - 56
+    - 60
+    - 65
+    - 70
+    - 75
+  Energy:
+    Costs: b6030000460500006c070000f6090000480d0000
+    Values:
+    - 440
+    - 465
+    - 490
+    - 520
+    - 550
+    - 580
+  Drive:
+    Costs: 84030000140500000807000092090000b20c0000
+    Values:
+    - 13
+    - 13
+    - 13
+    - 13
+    - 13
+    - 13
+  MinimumBoost:
+  - 7.5
+  - 7.75
+  - 8
+  - 8.25
+  - 8.5
+  - 8.75
+  MaximumBoost:
+  - 13
+  - 13
+  - 13
+  - 13
+  - 13
+  - 13
+  Recovery:
+  - 60
+  - 62
+  - 64
+  - 66
+  - 68
+  - 70

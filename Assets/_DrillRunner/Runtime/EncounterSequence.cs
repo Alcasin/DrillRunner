@@ -24,6 +24,8 @@ namespace DrillRunner
         private readonly bool firstCopper, calmFirst, relief;
         private readonly EncounterArrangement[] recent;
         private readonly int emptySpacing;
+        private readonly int openingCopperDeadline;
+        private bool copperSeen;
         private int recentCount, sinceEmpty = 1000000, previousPressure;
         private uint state;
         private int ordinal, sinceCopper, sinceRecovery, consecutivePressure, previous = -1;
@@ -40,7 +42,7 @@ namespace DrillRunner
         {
             if (library == null || library.Catalog == null || library.Patterns == null || library.EarlySections < 1 ||
                 library.RicherFromSection < library.EarlySections || library.MaximumCopperGap < 2 || library.MaximumRecoveryGap < 2 || library.MaximumConsecutivePressure < 1 ||
-                library.ArrangementMemory < 0 || library.ArrangementMemory > 4 || library.EmptyRecoverySpacing < 0)
+                library.ArrangementMemory < 0 || library.ArrangementMemory > 4 || library.EmptyRecoverySpacing < 0 || library.OpeningCopperBySelection < 0 || library.OpeningCopperBySelection > 3)
                 throw new ArgumentException("Invalid encounter pacing configuration.");
             fallback = library.Catalog.Fallback;
             if (!SectionSequence.IsSafe(fallback, library.Catalog, envelope.HalfWidth) || fallback.Obstacles.Length != 0)
@@ -49,6 +51,7 @@ namespace DrillRunner
             recoveryGap = library.MaximumRecoveryGap; pressureLimit = library.MaximumConsecutivePressure;
             firstCopper = library.FirstSelectionCopper; calmFirst = library.CalmFirstEncounter; relief = library.ReliefAfterHighPressure;
             recent = new EncounterArrangement[library.ArrangementMemory]; emptySpacing = library.EmptyRecoverySpacing;
+            openingCopperDeadline = library.OpeningCopperBySelection;
             state = unchecked((uint)seed); if (state == 0) state = 0x9e3779b9;
             var accepted = new List<Entry>(); var seen = new HashSet<TrackSection>();
             foreach (var definition in library.Patterns)
@@ -69,7 +72,7 @@ namespace DrillRunner
 
         public TrackSection Next()
         {
-            var wantCopper = (firstCopper && ordinal == 0) || sinceCopper >= copperGap - 1;
+            var wantCopper = (firstCopper && ordinal == 0) || sinceCopper >= copperGap - 1 || (!copperSeen && openingCopperDeadline > 0 && ordinal >= openingCopperDeadline - 1);
             var wantRecovery = sinceRecovery >= recoveryGap - 1;
             var count = 0; var total = 0;
             // Layout-family cooldown is soft; reachability, relief and resource cadence remain hard rules.
@@ -104,6 +107,7 @@ namespace DrillRunner
                 if (roll < weight) { chosen = i; break; } roll -= weight;
             }
             var entry = entries[chosen]; Selected = entry.Definition; previous = chosen; previousCategory = entry.Category;
+            copperSeen |= entry.Copper;
             sinceCopper = entry.Copper ? 0 : sinceCopper + 1; sinceRecovery = entry.Category == EncounterCategory.Recovery ? 0 : sinceRecovery + 1;
             consecutivePressure = entry.Pressure == 2 ? consecutivePressure + 1 : 0; previousPressure = entry.Pressure;
             sinceEmpty = entry.Empty ? 0 : sinceEmpty + 1;

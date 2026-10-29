@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c3155a180b4a88408fe723389ec9143, type: 3}
+  m_Name: CrystalCoreDrillProgression
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.ProgressionConfig
+  FormId: crystal_core_drill
+  DisplayName: Crystal Core Drill
+  VisualPrefab: {fileID: 5975373864433083445, guid: 5e8c6e8b1b3bc744d8b6c40214a90e0c, type: 3}
+  PreviewImage: {fileID: 2800000, guid: 4f657d18bdf855d4ab34ec986c0b42ee, type: 3}
+  NextForm: {fileID: 11400000, guid: 78c293692696e90428f4e77c7cf9163f, type: 2}
+  EvolutionCopper: 0
+  EvolutionResources:
+  - Resource: 3
+    Amount: 24
+  - Resource: 2
+    Amount: 20
+  SpeedCeiling: 26
+  Power:
+    Costs: 280a0000ac0d00005c12000038180000401f0000
+    Values:
+    - 82
+    - 88
+    - 94
+    - 101
+    - 108
+    - 115
+  Energy:
+    Costs: 60090000800c0000cc10000044160000e81c0000
+    Values:
+    - 600
+    - 630
+    - 665
+    - 700
+    - 740
+    - 780
+  Drive:
+    Costs: fc0800001c0c0000681000007c150000201c0000
+    Values:
+    - 13
+    - 13
+    - 13
+    - 13
+    - 13
+    - 13
+  MinimumBoost:
+  - 9
+  - 9.2
+  - 9.4
+  - 9.6
+  - 9.8
+  - 10
+  MaximumBoost:
+  - 13
+  - 13
+  - 13
+  - 13
+  - 13
+  - 13
+  Recovery:
+  - 72
+  - 74
+  - 76
+  - 78
+  - 80
+  - 82

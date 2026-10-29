@@ -2,7 +2,7 @@
 
 A portrait mobile 3D evolution runner built with **Unity 6000.3.8f1 (6.3 LTS)** and **Universal Render Pipeline 17.3.0**. The approved game has eight drill forms and four regions; the first vertical slice will cover one region and Form 1 to Form 2.
 
-**M7-B brings encounter choices into the early Workshop Yard run:** a 40-meter introduction, 14 patterns across six categories, deterministic pacing, and readable safe/Copper alternatives. The M6-B presentation, continuous steering, hardness, Energy, rewards, upgrades, evolution, and saves retain their approved rules. Stop here for M7-B review; M8 and Android/release work are not started.
+**M8-R turns the eight-form progression into a rapid arcade loop:** short Energy-limited attempts, prompt Results/Retry, useful purchases, and stronger launch carry. Normal Workshop Yard play reaches EVO 3 using Copper; later resources await M9. Existing models, Power/Capacity tables, prices, hardness, steering, and save data remain. Stop here for M8-R review; M9 and Android/release work are not started.
 
 ## Open and inspect
 
@@ -92,12 +92,14 @@ The controlled layout uses static, axis-aligned BoxColliders. `DrillContacts` pe
 | State | Energy per second |
 | --- | --- |
 | Ready / Charging | 0 |
-| Moving, including launch boost | 0.7 |
-| Drilling | Material's rate only; no movement rate stacked |
-| Blocked | 0.5, with no damage or drilling cost |
+| Moving, including launch boost | Fixed form profile: Pocket 6, Workshop 9; see M8-R table for all forms |
+| Drilling | Form drilling base + 0.1 × material rate; no movement rate stacked |
+| Blocked | Form moving rate + 1, with no damage or drilling cost |
 | RunEnded | 0; movement and damage stop |
 
 Energy and durability use elapsed time, clamp at zero, and emit completion once. A drilling interval stops at target completion or energy exhaustion; any remainder after a break is simulated as movement. If energy ends first, the obstacle stays partially damaged until restart. If destruction and depletion occur at exactly the same instant, destruction completes and the run also ends. Restart restores all obstacle durability/visibility/colliders and full energy, clears contact and pending pointer state, and snaps the existing camera.
+
+Tune current production consumption, rewards, charge, and launch coast in `Assets/_DrillRunner/ScriptableObjects/RapidRunBalance.asset`. Rates stay fixed through Capacity upgrades. The original 0.7/0.5/material-only settings remain as explicit historical regression fixtures; they are superseded for normal Gameplay.
 
 Invalid material data stays solid and undamageable with a clear warning. Invalid run settings are rejected before modifying an existing run. Invalid initial drilling configuration stops the motor with an error instead of permitting movement. Public motor simulation accepts finite intervals from 0 to 10 seconds; ordinary Unity frame deltas are well within this range.
 
@@ -117,17 +119,17 @@ All modules are **6 units wide × 40 units long**, with entrance at local Z=0 an
 
 `TrackSafety` validates complete-footprint routes, central alignment for drillable materials, real Stone bypasses, nonoverlapping placements, transition clearances, and reachable Copper at initial power 5. The validator constructs a conservative constant-X route certificate rather than accepting visual gaps. Catalog variants have clearance for changing routes between sections. An unsafe selected variant becomes the known-safe Open fallback; an invalid fallback/catalog stops the attempt with an error.
 
-The run uses a private xorshift sequence, independent of Unity's global random state. On **M3 Workshop Run > RunProgress**, fixed seed **1337** is enabled by default. Edit **Configured Seed**, then use **QA: Replay configured seed** to reproduce it, or **QA: New random seed** for a fresh attempt. The active seed appears in the Inspector and Console. Matching seeds require unchanged catalog/material/pacing configuration. Normal M7-B offers Copper within three encounter selections; explicit legacy selection retains its original Copper schedule.
+The run uses a private xorshift sequence, independent of Unity's global random state. On **M3 Workshop Run > RunProgress**, fixed seed **1337** is enabled by default. Edit **Configured Seed**, then use **QA: Replay configured seed** to reproduce it, or **QA: New random seed** for a fresh attempt. The active seed appears in the Inspector and Console. Matching seeds require unchanged catalog/material/pacing configuration. M8-R offers the first Copper within two encounter selections and retains the later three-selection cadence; explicit legacy selection retains its original schedule.
 
 | Reward source | Per-run payout |
 | --- | --- |
-| Forward distance | 1 Coin per completed 5 units; primary income source |
-| Wood destruction | 1 Coin |
-| Brick destruction | 2 Coins |
-| Stone destruction, when power permits | 3 Coins |
+| Forward distance | 9 Coins per completed 5 units |
+| Wood destruction | 25 Coins |
+| Brick destruction | 50 Coins |
+| Stone destruction, when power permits | 75 Coins |
 | Copper Ore destruction | 3 Copper and **0 obstacle Coins** |
 
-Copper Ore has hardness **4**, durability **90**, and drilling cost **10 energy/s**. At power 5 it takes **1.8 seconds** and **18 drilling energy**. Its teal material distinguishes it from normal obstacles. Rewards are configured by `MaterialDefinition.RewardKind` and `RewardAmount`; distance parameters live on RunProgress's Reward Settings.
+Copper Ore retains hardness **4**, durability **90**, and raw material rate **10**. At Pocket Power 5 it takes **1.8 seconds** and now costs **12.96 drilling Energy** under the fixed form profile. Its teal material distinguishes it from normal obstacles. Material definitions retain their original reward kinds/amounts; `RapidRunBalance.Rewards` snapshots the distance payout and 25× normal-Coin multiplier into the existing run ledger. Copper is never multiplied.
 
 `RunRewards` remains the only per-run reward ledger. Distance uses maximum forward Z progress from the run start, ignoring lateral movement, pauses, and backtracking. Integer interval payouts avoid accumulated fractional Coin rounding. Obstacle encounter IDs prevent repeat payouts; partial damage, restoration, stale unregistered objects, and post-completion callbacks cannot add rewards. Completing the run freezes distance, both Coin sources, Copper, and seed. M4 banks that completed ledger once into separate permanent balances. Restart creates an empty ledger and clean course.
 
@@ -135,7 +137,7 @@ The HUD shows temporary earnings, effective Power, current/max Energy, a frozen 
 
 ## M4 Workshop and persistent progress
 
-Workshop is a portrait panel on the existing HUD Canvas. It reuses the same motor, input adapter, camera, and M3 tracker. It shows permanent Coins/Copper, the current form preview, three upgrade rows, current/maximum levels, current/next stats, prices, MAX states, evolution requirements, and Start Run. Buying/evolving is available only in Workshop between attempts. Coins buy normal upgrades; Copper buys the single supported evolution.
+Workshop is a portrait panel on the existing HUD Canvas. It reuses the same motor, input adapter, camera, and M3 tracker. It shows permanent Coins/Copper, contextual advanced resources, the current form preview, three upgrade rows, current/maximum levels, current/next stats, prices, MAX states, evolution requirements, and Start Run. Buying/evolving is available only in Workshop between attempts. Coins buy normal upgrades; configured resource costs fund evolution.
 
 Tune `Assets/_DrillRunner/ScriptableObjects/PocketDrillProgression.asset` outside Play Mode:
 
@@ -171,7 +173,7 @@ Pocket upgrade levels remain saved at MAX as history. Workshop levels start at z
 
 Workshop minimum launch boost rises from 3.25 to 4.25; maximum boost from 12.25 to 13; recovery acceleration from 24 to 34. Its conservative speed ceiling is **26**. Pocket stays at 24. Both use the same full 1.7×3 horizontal collision footprint, strict hardness rules, input, camera, and modular tracks. Visual-only child models have no decorative colliders or extra controller. Static rendered previews reuse the same models without a second runtime camera.
 
-Tune the existing Pocket progression asset and `Assets/_DrillRunner/ScriptableObjects/WorkshopDrillProgression.asset`. Only these two forms exist. The evolved tier has no next evolution or functional EVO 3 control. The short presentation locks controls for 0.9 seconds; the save completes before it begins. Reload/interrupt restores the committed form directly.
+Tune the existing Pocket progression asset and `Assets/_DrillRunner/ScriptableObjects/WorkshopDrillProgression.asset`. M8 extends their chain through six additional configurations while preserving these two forms' original stats, prices, and visuals. The shared presentation locks controls for 0.9 seconds; the save completes before it begins. Reload/interrupt restores the committed form directly.
 
 Save envelope/payload version remains **1**, extended additively with `FormSchema = 1` and three Workshop-level fields. Original M4 Pocket profiles (extension absent/zero) retain Coins, Copper, identity, upgrade levels, revision, and banking receipts. Missing new counters become zero; no migration-only disk rewrite occurs. The next normal transaction stores the extension through the unchanged atomic save/backup mechanism. Unsupported versions, extension versions, identifiers, or inconsistent form histories remain read-only with original data preserved.
 
@@ -212,9 +214,9 @@ See `Docs/M6-Validation.md` for representative 9:16 renders, before/after eviden
 
 ## M7 / M7-B encounter variety
 
-Run **Tools > DrillRunner > Setup M7 Gameplay Variety** to validate/integrate the authored library. The Gameplay scene is already wired; setup migrates the existing M7 assets to revision 2, then reruns validate without writes. One 40-meter starter introduces the drill; encounter sections begin at Z=40, with multi-target choices around Z=60 and Copper before Z=150. The first three selections avoid Stone; the full vocabulary is eligible from the fourth section at Z=160. These phases follow section ordinals rather than movement-coordinate gates.
+Run **Tools > DrillRunner > Setup M7 Gameplay Variety** to validate/integrate the authored library. The Gameplay scene is already wired. One 40-meter starter introduces the drill; encounter sections begin at Z=40, with multi-target choices around Z=60. M8-R brings first Copper forward to the second selection (by about Z=102) and permits guarded choices from the third section at Z=120. Stone remains excluded from the first three selections; the full vocabulary is eligible from Z=160. These phases follow section ordinals rather than movement-coordinate gates.
 
-The six categories are **Easy Flow**, **Dense Drilling**, **Risk/Reward**, **Precision Escape**, **Power Test**, and **Recovery**. Left/right variants are arrangements, not lanes. Flow arcs, dense clusters, simultaneous Wood/Ore choices, and staggered Stone vary the silhouette. Guarded Copper now has a separate cheap Wood option: at Power 5, Wood costs 11.2 drilling Energy versus 51.6 for Brick plus Ore. A collision-free bypass remains available. Other patterns retain unguarded Ore. Recovery provides lower pressure without Energy regeneration; Stone still requires Power 9.
+The six categories are **Easy Flow**, **Dense Drilling**, **Risk/Reward**, **Precision Escape**, **Power Test**, and **Recovery**. Left/right variants are arrangements, not lanes. Flow arcs, dense clusters, simultaneous Wood/Ore choices, and staggered Stone vary the silhouette. At Pocket Power 5, the Wood option now costs **9.8 drilling Energy**, Wood followed by a careful Ore approach **22.76**, and Brick plus Ore **33.68**. A collision-free bypass remains. Other patterns retain unguarded Ore. Recovery provides lower pressure without regeneration; Stone still requires Power 9.
 
 `ScriptableObjects/Encounters/WorkshopYardEncounters.asset` holds the existing catalog reference, 14 pattern definitions, weights, pacing limits, and reaction/steering allowances. Each definition references an authored section prefab and an open-bypass witness. Mining routes are certified at starting Power. Entry/transition checks use the full footprint and steering response, with maximum accepted speed 26; they establish available choices under stated reaction assumptions, not safety for arbitrary input. The complete validation and limitations are in `Docs/M7-Validation.md`.
 
@@ -222,19 +224,60 @@ Selection prevents consecutive identical categories, remembers the last two arra
 
 The original catalog and 11 legacy sections remain intact. An explicit runtime assignment of a different legacy catalog uses that catalog's original selection unless a matching encounter library is also assigned. This preserves existing controlled-content QA and authoring overrides; normal Gameplay uses M7.
 
+## M8 full evolution
+
+**Tools > DrillRunner > Setup M8 Full Evolution** has integrated the eight-form chain without manual wiring. The original Pocket and Workshop models/tables remain. Six visual-only prefabs add Industrial Drill, Heavy Borer, Hydraulic Drill, Crystal Core Drill, Fusion Drill, and Quantum Drill. Each has five Power, Energy, and Drive purchases; only one model is active under the existing motor. Later Drive upgrades improve minimum-charge launch and recovery while cruise stays at 13 and peak speed stays at 26, preserving M7's movement envelope.
+
+Evolution requires all current upgrades MAX and the full configured cost: **12 Copper → 24 Copper → 30 Iron → 50 Iron + 12 Copper → 40 Quartz → 24 Alloy Core + 20 Quartz → 30 Energy Shard + 12 Alloy Core**. The final Quantum form has no next evolution. Only Copper is earned in the existing region, so **normal M8 progression stops at EVO 3's Iron requirement**. Region eligibility unlocks at EVO 3/5/7; the actual regions and advanced resource sources are deferred to M9.
+
+Persistence retains the original save path, checksum envelope version 1, Copper, Pocket/Workshop fields, and durable banking receipts. Additive `EvolutionSchema = 1` stores the four advanced balances and purchased advanced-form history. Valid M4/M5 saves migrate in memory without a load-only rewrite. Transactions save before publishing; unsupported or invalid saves stay read-only.
+
+For all-form QA during Play Mode, select **M4 Workshop** and use **M8 development-only stage shortcut**. Set Temporary EVO, Coins/resources, and MAX-current-form, then select **QA: Select temporary stage (no disk writes)** while Ready/Completed. Zero a required balance to test rejection. The visible sandbox uses memory for upgrades, evolution, and Results banking; leaving Play Mode restores the real profile. No JSON editing or normal advanced-resource spawning is needed.
+
+See `Docs/M8-Validation.md` for complete stat/price tables, resource dependencies, migration tests, rendering evidence, provisional balance assumptions, and four manual checks.
+
+## M8-R rapid run loop
+
+**Tools > DrillRunner > Setup M8-R Rapid Runs** has wired the production balance asset without manual references. Pocket/Workshop use fixed moving drains of 6/9 Energy per second; later forms have their own fixed profiles. Mining costs a form base plus 10% of the original material rate, and BLOCKED costs moving +1. Capacity upgrades extend endurance without increasing rates. Existing charge, progressive HP, hardness, free steering, and Energy-depletion termination remain; there is no run timer or distance cap.
+
+Charge now takes 1.1 seconds. Drive improves existing exponential launch coast, with absolute per-form tables that preserve purchased carry on evolution and keep peak speeds at 24/26. First Copper is due within two encounter selections, and guarded choices can appear earlier. Distance Coins and fully destroyed normal-obstacle Coins are retuned for short attempts; all prices and Copper costs remain. Results/Workshop/Retry use the same scene, with same-frame duplicate-start protection and once-only banking.
+
+Run diagnostics are in the existing **RunProgress** Inspector: actual Moving/Drilling/BLOCKED seconds and Energy, plus ending state. The player HUD has no new debug counters. All M8 temporary stage/resource controls remain isolated in memory. See `Docs/M8-R-RapidRunValidation.md` for old/new duration distributions, upgrade measurements, real unfunded journeys, rendered episodes, performance caveats, and four manual checks. Later resource-dependent progression remains unavailable until M9.
+
 ## Automated verification
 
-Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. All 203 M0–M7 regressions remain, with narrow fixture adaptations for the shorter opening documented in `Docs/M7-Validation.md`. M7-B adds ten checks for early choices, cadence, routes, frozen-M7 comparisons, progression, and natural runtime captures. Tests use memory or unique OS-temp stores, preserving the actual profile. Current results: **139 EditMode / 74 PlayMode passed**, with no failures or skips. See the M7-B revision section of `Docs/M7-Validation.md` for evidence and limits.
+Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. All **238 prior M0–M8 cases remain**. Archived PlayMode cases explicitly load historical operating/reward tuning so their original scalar assertions remain intact; the new production suite validates the rapid loop, Energy accounting, eight forms, four policies, adjacent upgrades, route choices, banking/retry, and unfunded progression. Tests use memory or unique OS-temp stores, preserving the actual profile. Current complete-suite results after M8-R4: **196 EditMode / 95 PlayMode passed**, with no failures or skips. See `Docs/M8-R-RapidRunValidation.md` for fixture scope and measurements.
 
 Batch run (close this project in the Editor first; omit `-quit` because the test runner exits when finished):
 
 ```powershell
-& $unityEditor -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -assemblyNames DrillRunner.EditModeTests -testResults Logs/M7B-EditMode.xml -logFile Logs/M7B-EditMode.log
-& $unityEditor -batchmode -projectPath . -runTests -testPlatform PlayMode -assemblyNames DrillRunner.PlayModeTests -testResults Logs/M7B-PlayMode.xml -logFile Logs/M7B-PlayMode.log
+& $unityEditor -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -assemblyNames DrillRunner.EditModeTests -testResults Logs/M8R-EditMode.xml -logFile Logs/M8R-EditMode.log
+& $unityEditor -batchmode -projectPath . -runTests -testPlatform PlayMode -assemblyNames DrillRunner.PlayModeTests -testResults Logs/M8R-PlayMode.xml -logFile Logs/M8R-PlayMode.log
 ```
 
 Run those processes sequentially. Graphical tests capture 540 x 960 images under `Logs/`; `-nographics` omits captures. Logs/results are ignored local files. See `Docs/M3-Validation.md` for executed results and minimum QA. Earlier validation reports record the accepted M0–M2 milestones.
 
 ## Source control
 
-Unity Force Text serialization, Visible Meta Files, `.gitignore`, and `.gitattributes` are retained. Version `Assets` with all `.meta` files, `Packages`, `ProjectSettings`, and documentation. Unity caches, local settings, builds, logs, and generated IDE projects are ignored. No commit, push, remote changes, or Git LFS setup are part of M7/M7-B.
+Unity Force Text serialization, Visible Meta Files, `.gitignore`, and `.gitattributes` are retained. Version `Assets` with all `.meta` files, `Packages`, `ProjectSettings`, and documentation. Unity caches, local settings, builds, logs, and generated IDE projects are ignored. No commit, push, remote changes, or Git LFS setup are part of M8/M8-R.
+
+
+## M8-R2 ultra-short first attempts
+
+Production Pocket starts at **25 Energy** and runs about **7.57 active seconds** for the measured balanced policy. Capacity levels are **25 / 35 / 45 / 55 / 65 / 80**; Workshop starts at 90 and reaches 180. Fixed form-specific operating costs preserve meaningful upgrades; no hard timer or forced death was added. Distance income is **12 Coins / 5 m**, with existing destruction/Copper rewards, prices and MAX-all-three gates retained.
+
+**Tools > DrillRunner > Setup M8-R2 Ultra Short Runs** is already applied and repeatable. In Play, select **M4 Workshop** and use **QA: Fresh Pocket - 0 upgrades (no disk writes)** in its WorkshopController Inspector. This uses the existing memory sandbox with zero funds and never resets the real save. Existing temporary funded/stage selectors remain for base/MAX comparisons. See the M8-R2 section of `Docs/M8-R-RapidRunValidation.md` for exact tables, actual multi-seed metrics, save impact, screenshots, all test results and three owner checks. Earlier M8-R figures above are historical. No M9, Android work, commit or push is included.
+
+
+## M8-R3 faster early upgrades
+
+Current Pocket Capacity is **25 / 30 / 35 / 40 / 45 / 55**; Workshop is **90 / 100 / 110 / 120 / 130 / 140**. Fresh Pocket remains **7.57 active seconds**. Capacity-only balanced medians are **7.57 / 9.06 / 10.55 / 12.04 / 13.62 / 16.71 s** for Pocket and **14.14 / 15.90 / 17.31 / 19.06 / 20.81 / 22.22 s** for Workshop. Fully upgraded Workshop is **21.38 s**; no timer or forced end was added. EVO 3-8, operating costs, Power/Drive, encounters, prices/rewards, scene, saves, audio and VFX are unchanged from R2.
+
+**Tools > DrillRunner > Setup M8-R3 Fast Upgrades** is already applied, uses Editor APIs and is idempotent. Existing fresh-Pocket and temporary-stage Inspector tools require no new wiring. Real progression is never reset. Three unfunded journeys evolve in **8 + 9 attempts**, with purchases on every attempt and unchanged MAX/Copper gates. Complete Unity suites pass **182/182 EditMode, 92/92 graphics-enabled PlayMode**. See the M8-R3 section of `Docs/M8-R-RapidRunValidation.md` for paired 600-run comparisons, per-level rewards/ranges, later-form preservation, graphics evidence and two owner checks. Earlier tables above are historical. No commit, push or M9 work.
+
+
+## M8-R4 coin economy
+
+New attempts earn **6 Coins per completed 5 m**. Wood/Brick/Stone remain **25/50/75 Coins**, and fully destroyed Copper Ore remains **3 Copper / 0 Coins**. Prices, Copper/MAX requirements, M8-R3 Capacity and all gameplay/audio/visual tuning are unchanged. Fresh balanced play earns about **97 Coins**, supporting one chosen first purchase. Savings can still fund multiple purchases. Paired fresh journeys evolve in **14 + 14 attempts** for balanced play, **14-15 + 13** for drilling-focused play. The longest no-affordable-upgrade stretch is one attempt. Previously saved balances are never recalculated.
+
+**Tools > DrillRunner > Setup M8-R4 Coin Economy** is applied and idempotent, with no new wiring. Existing Fresh Pocket and temporary-stage QA controls remain isolated from real saves. Complete suites pass **196/196 EditMode and 95/95 graphics-enabled PlayMode**, retaining every earlier case. See the M8-R4 section of `Docs/M8-R-RapidRunValidation.md` for all 12/6/7/8 comparisons, 48 completed fresh journeys, reward/wallet accounting, screenshots, provisional advanced-stage limits and three owner checks. Earlier tables are historical. No commit, push or M9 work.

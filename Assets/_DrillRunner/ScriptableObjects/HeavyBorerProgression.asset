@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c3155a180b4a88408fe723389ec9143, type: 3}
+  m_Name: HeavyBorerProgression
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.ProgressionConfig
+  FormId: heavy_borer
+  DisplayName: Heavy Borer
+  VisualPrefab: {fileID: 3852205772444444711, guid: 43b524658e10fb043be2a192ccc5958a, type: 3}
+  PreviewImage: {fileID: 2800000, guid: 45ff59626164fa846b2dc558e4e4b55d, type: 3}
+  NextForm: {fileID: 11400000, guid: cc9d66f3325b0654f91a550c062891f6, type: 2}
+  EvolutionCopper: 0
+  EvolutionResources:
+  - Resource: 1
+    Amount: 50
+  - Resource: 0
+    Amount: 12
+  SpeedCeiling: 26
+  Power:
+    Costs: bc020000e8030000780500006c070000c4090000
+    Values:
+    - 33
+    - 36
+    - 39
+    - 42
+    - 45
+    - 48
+  Energy:
+    Costs: 5802000084030000e2040000a4060000ca080000
+    Values:
+    - 300
+    - 320
+    - 340
+    - 365
+    - 390
+    - 420
+  Drive:
+    Costs: 2602000052030000b00400007206000098080000
+    Values:
+    - 13
+    - 13
+    - 13
+    - 13
+    - 13
+    - 13
+  MinimumBoost:
+  - 6
+  - 6.25
+  - 6.5
+  - 6.75
+  - 7
+  - 7.25
+  MaximumBoost:
+  - 13
+  - 13
+  - 13
+  - 13
+  - 13
+  - 13
+  Recovery:
+  - 48
+  - 50
+  - 52
+  - 54
+  - 56
+  - 58

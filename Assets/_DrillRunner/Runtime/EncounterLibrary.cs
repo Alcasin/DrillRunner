@@ -11,6 +11,7 @@ namespace DrillRunner
         [Min(1)] public int IntroductionSections = 1;
         [Min(0)] public int OpeningBufferSections;
         public bool FirstSelectionCopper;
+        [Min(0)] public int OpeningCopperBySelection;
         public bool CalmFirstEncounter = true;
         public bool ReliefAfterHighPressure = true;
         [Range(0, 4)] public int ArrangementMemory = 2;

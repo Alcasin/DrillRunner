@@ -1,0 +1,117 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ffda666876db9a4680a5ba0a532b3ea, type: 3}
+  m_Name: RapidRunBalance
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.RapidRunBalance
+  Forms:
+  - FormId: pocket_drill
+    Moving: 3.35
+    Blocked: 3.7
+    DrillingBase: 2.7
+    MaterialScale: 0.05
+    BoostDecayByDriveLevel:
+    - 1.8
+    - 1.2
+    - 0.9
+    - 0.7
+    - 0.56
+    - 0.45
+  - FormId: workshop_drill
+    Moving: 7.1
+    Blocked: 8.1
+    DrillingBase: 2.5
+    MaterialScale: 0.05
+    BoostDecayByDriveLevel:
+    - 0.44
+    - 0.4
+    - 0.36
+    - 0.32
+    - 0.29
+    - 0.26
+  - FormId: industrial_drill
+    Moving: 12.5
+    Blocked: 13.5
+    DrillingBase: 2.7
+    MaterialScale: 0.05
+    BoostDecayByDriveLevel:
+    - 0.25
+    - 0.23
+    - 0.21
+    - 0.195
+    - 0.18
+    - 0.165
+  - FormId: heavy_borer
+    Moving: 17
+    Blocked: 18
+    DrillingBase: 2.9
+    MaterialScale: 0.05
+    BoostDecayByDriveLevel:
+    - 0.16
+    - 0.155
+    - 0.15
+    - 0.145
+    - 0.14
+    - 0.135
+  - FormId: hydraulic_drill
+    Moving: 23
+    Blocked: 24
+    DrillingBase: 3.1
+    MaterialScale: 0.05
+    BoostDecayByDriveLevel:
+    - 0.13
+    - 0.125
+    - 0.12
+    - 0.115
+    - 0.11
+    - 0.105
+  - FormId: crystal_core_drill
+    Moving: 29
+    Blocked: 30
+    DrillingBase: 3.4
+    MaterialScale: 0.05
+    BoostDecayByDriveLevel:
+    - 0.1
+    - 0.097
+    - 0.094
+    - 0.091
+    - 0.088
+    - 0.085
+  - FormId: fusion_drill
+    Moving: 36
+    Blocked: 37
+    DrillingBase: 3.6
+    MaterialScale: 0.05
+    BoostDecayByDriveLevel:
+    - 0.084
+    - 0.081
+    - 0.078
+    - 0.075
+    - 0.072
+    - 0.069
+  - FormId: quantum_drill
+    Moving: 45
+    Blocked: 46
+    DrillingBase: 3.9
+    MaterialScale: 0.05
+    BoostDecayByDriveLevel:
+    - 0.068
+    - 0.065
+    - 0.062
+    - 0.059
+    - 0.056
+    - 0.053
+  Rewards:
+    DistancePerPayout: 5
+    CoinsPerPayout: 6
+    ObstacleCoinMultiplier: 25
+  ChargeSeconds: 1.1
+  Revision: 7

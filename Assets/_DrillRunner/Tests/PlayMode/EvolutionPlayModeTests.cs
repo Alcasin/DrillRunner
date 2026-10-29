@@ -24,12 +24,12 @@ namespace DrillRunner.Tests.PlayMode
             directory = Path.Combine(Path.GetTempPath(), "DrillRunner-M5-Play-" + Guid.NewGuid().ToString("N"));
             var disk = new FileProgressStore(directory); disk.Load(); disk.TrySave(new PlayerProgress { Coins = 10000, Copper = 24 }, out _);
             WorkshopController.StoreFactory = () => new FileProgressStore(directory);
-            yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null; Find(); flow.OpenWorkshop();
+            yield return HistoricalRunFixture.LoadScene(); yield return null; Find(); flow.OpenWorkshop();
         }
         private void Find() { flow = Object.FindFirstObjectByType<WorkshopController>(); motor = flow.Run.Motor; motor.enabled = false; hud = Object.FindFirstObjectByType<PrototypeHud>(); }
         [UnityTearDown] public IEnumerator Close()
         {
-            yield return SceneManager.LoadSceneAsync("SampleScene"); WorkshopController.StoreFactory = () => new MemoryProgressStore();
+            yield return HistoricalRunFixture.UnloadScene(); WorkshopController.StoreFactory = () => new MemoryProgressStore();
             if (legacyCatalog != null) Object.Destroy(legacyCatalog);
             if (Directory.Exists(directory)) Directory.Delete(directory, true);
         }
@@ -65,18 +65,19 @@ namespace DrillRunner.Tests.PlayMode
             yield return new WaitForSecondsRealtime(1.05f);
             Assert.That(flow.IsEvolving, Is.False); Assert.That(flow.Message, Does.Contain("WORKSHOP DRILL UNLOCKED"));
             Assert.That(flow.View.FormName.text, Does.Contain("WORKSHOP DRILL")); Assert.That(flow.View.Rows[0].text, Does.Contain("0 / 5"));
-            Assert.That(flow.View.EvolveButton.gameObject.activeSelf, Is.False); Assert.That(flow.View.FormPreview.texture, Is.SameAs(flow.Configuration.NextForm.PreviewImage));
+            Assert.That(flow.View.EvolveButton.gameObject.activeSelf, Is.True); Assert.That(flow.View.EvolveButton.interactable, Is.False);
+            Assert.That(flow.View.FormPreview.texture, Is.SameAs(flow.Configuration.NextForm.PreviewImage));
             yield return Capture("WorkshopDrillUnlocked");
         }
         [UnityTest] public IEnumerator InterruptedPresentationReloadRestoresTheCommittedFormAndItsNewUpgradeLevels()
         {
             MaxPocket(); Assert.That(flow.Evolve(), Is.True);
-            yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null; Find(); flow.OpenWorkshop();
+            yield return HistoricalRunFixture.LoadScene(); yield return null; Find(); flow.OpenWorkshop();
             Assert.That(flow.Service.Snapshot.FormId, Is.EqualTo(ProgressionConfig.WorkshopForm)); Assert.That(flow.Service.Snapshot.Copper, Is.EqualTo(12));
             Assert.That(flow.IsEvolving, Is.False); Assert.That(flow.Visuals.CurrentForm, Is.EqualTo(ProgressionConfig.WorkshopForm));
             Assert.That(flow.Purchase(UpgradeCategory.DrillPower), Is.True); Assert.That(flow.Purchase(UpgradeCategory.EnergyCapacity), Is.True);
             var saved = flow.Service.Snapshot;
-            yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null; Find(); flow.OpenWorkshop();
+            yield return HistoricalRunFixture.LoadScene(); yield return null; Find(); flow.OpenWorkshop();
             Assert.That(motor.DrillPower, Is.EqualTo(13)); Assert.That(motor.Energy.Capacity, Is.EqualTo(220));
             Assert.That(flow.Service.Snapshot.WorkshopPowerLevel, Is.EqualTo(1)); Assert.That(flow.Service.Snapshot.PowerLevel, Is.EqualTo(5));
             Assert.That(flow.Service.Snapshot.Coins, Is.EqualTo(saved.Coins)); Assert.That(flow.Service.Snapshot.Copper, Is.EqualTo(12));
@@ -121,7 +122,7 @@ namespace DrillRunner.Tests.PlayMode
         [UnityTest] public IEnumerator FailedEvolutionSaveKeepsPocketVisualCopperAndUiReadyForASafeRetry()
         {
             var store = new SwitchStore(); WorkshopController.StoreFactory = () => store;
-            yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null; Find(); flow.OpenWorkshop(); MaxPocket();
+            yield return HistoricalRunFixture.LoadScene(); yield return null; Find(); flow.OpenWorkshop(); MaxPocket();
             store.Fail = true; var coins = flow.Service.Snapshot.Coins; Assert.That(flow.Evolve(), Is.False);
             Assert.That(flow.IsEvolving, Is.False); Assert.That(flow.Service.Snapshot.Copper, Is.EqualTo(24)); Assert.That(flow.Service.Snapshot.Coins, Is.EqualTo(coins));
             Assert.That(flow.Visuals.CurrentForm, Is.EqualTo(ProgressionConfig.PocketForm)); Assert.That(flow.View.FormName.text, Does.Contain("POCKET DRILL"));
@@ -158,14 +159,14 @@ namespace DrillRunner.Tests.PlayMode
             foreach (UpgradeCategory category in Enum.GetValues(typeof(UpgradeCategory))) Assert.That(flow.Purchase(category), Is.True);
             Assert.That(flow.StartRun(), Is.True); Launch(); motor.Simulate(0.5f); End();
             Assert.That(File.ReadAllBytes(path), Is.EqualTo(original));
-            yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null; Find();
+            yield return HistoricalRunFixture.LoadScene(); yield return null; Find();
             Assert.That(flow.Service.Snapshot.FormId, Is.EqualTo(ProgressionConfig.PocketForm)); Assert.That(flow.Service.Snapshot.PowerLevel, Is.Zero);
             Assert.That(flow.Service.Snapshot.Copper, Is.EqualTo(24)); Assert.That(flow.Visuals.CurrentForm, Is.EqualTo(ProgressionConfig.PocketForm));
         }
         [UnityTest] public IEnumerator GuidedRunsCanEarnTheCompleteFirstEvolutionWithoutAnyFundingOrBalanceEdits()
         {
             WorkshopController.StoreFactory = () => new MemoryProgressStore();
-            yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null; Find(); flow.OpenWorkshop();
+            yield return HistoricalRunFixture.LoadScene(); yield return null; Find(); flow.OpenWorkshop();
             long totalCoins = 0, totalCopper = 0; var runs = 0;
             while (!flow.Evolution.Ready && runs < 8)
             {

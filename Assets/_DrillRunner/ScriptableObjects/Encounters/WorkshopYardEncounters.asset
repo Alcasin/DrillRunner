@@ -31,6 +31,7 @@ MonoBehaviour:
   IntroductionSections: 1
   OpeningBufferSections: 0
   FirstSelectionCopper: 0
+  OpeningCopperBySelection: 2
   CalmFirstEncounter: 1
   ReliefAfterHighPressure: 1
   ArrangementMemory: 2

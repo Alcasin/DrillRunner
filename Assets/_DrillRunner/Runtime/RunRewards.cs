@@ -8,9 +8,10 @@ namespace DrillRunner
     {
         public double DistancePerPayout = 5;
         public int CoinsPerPayout = 1;
+        public int ObstacleCoinMultiplier = 1;
         public void Validate()
         {
-            if (double.IsNaN(DistancePerPayout) || double.IsInfinity(DistancePerPayout) || DistancePerPayout <= 0 || CoinsPerPayout < 0)
+            if (double.IsNaN(DistancePerPayout) || double.IsInfinity(DistancePerPayout) || DistancePerPayout <= 0 || CoinsPerPayout < 0 || ObstacleCoinMultiplier < 1 || ObstacleCoinMultiplier > 1000)
                 throw new ArgumentException("Distance reward interval must be finite and positive; Coins must be nonnegative.");
         }
     }
@@ -19,7 +20,7 @@ namespace DrillRunner
     public sealed class RunRewards
     {
         private readonly double origin, interval;
-        private readonly int payout;
+        private readonly int payout, obstacleMultiplier;
         private readonly HashSet<long> claimed = new HashSet<long>();
         private double progress;
         public int Seed { get; }
@@ -36,7 +37,7 @@ namespace DrillRunner
             if (settings == null) throw new ArgumentNullException(nameof(settings));
             settings.Validate();
             if (double.IsNaN(startZ) || double.IsInfinity(startZ)) throw new ArgumentOutOfRangeException(nameof(startZ));
-            Seed = seed; origin = startZ; interval = settings.DistancePerPayout; payout = settings.CoinsPerPayout;
+            Seed = seed; origin = startZ; interval = settings.DistancePerPayout; payout = settings.CoinsPerPayout; obstacleMultiplier = settings.ObstacleCoinMultiplier;
         }
 
         public void Start() { if (!IsCompleted) IsActive = true; }
@@ -57,9 +58,10 @@ namespace DrillRunner
         {
             if (encounterId <= 0 || amount < 0 || !Enum.IsDefined(typeof(ObstacleRewardKind), kind)) throw new ArgumentException("Invalid obstacle reward.");
             if (!IsActive || IsCompleted || !completelyDestroyed || claimed.Contains(encounterId)) return false;
-            var total = kind == ObstacleRewardKind.Copper ? checked(Copper + amount) : checked(Coins + amount);
+            var normalCoins = checked((long)amount * obstacleMultiplier);
+            var total = kind == ObstacleRewardKind.Copper ? checked(Copper + amount) : checked(Coins + normalCoins);
             claimed.Add(encounterId);
-            if (kind == ObstacleRewardKind.Copper) Copper = total; else ObstacleCoins += amount;
+            if (kind == ObstacleRewardKind.Copper) Copper = total; else ObstacleCoins += normalCoins;
             return true;
         }
 

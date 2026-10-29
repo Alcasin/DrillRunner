@@ -24,7 +24,7 @@ namespace DrillRunner.Tests.PlayMode
         [UnitySetUp]
         public IEnumerator OpenScene()
         {
-            yield return SceneManager.LoadSceneAsync("Gameplay");
+            yield return HistoricalRunFixture.LoadScene();
             motor = Object.FindFirstObjectByType<DrillMotor>();
             hud = Object.FindFirstObjectByType<PrototypeHud>();
             follower = Object.FindFirstObjectByType<RunnerCamera>();
@@ -35,7 +35,7 @@ namespace DrillRunner.Tests.PlayMode
             legacyCatalog = LegacyTemplateFixture.Restore(Object.FindFirstObjectByType<TrackStreamer>(), hud);
         }
 
-        [UnityTearDown] public IEnumerator CloseScene() { yield return SceneManager.LoadSceneAsync("SampleScene"); if (legacyCatalog != null) Object.Destroy(legacyCatalog); }
+        [UnityTearDown] public IEnumerator CloseScene() { yield return HistoricalRunFixture.UnloadScene(); if (legacyCatalog != null) Object.Destroy(legacyCatalog); }
 
         private void Advance(float seconds)
         {

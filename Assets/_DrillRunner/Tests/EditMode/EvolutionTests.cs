@@ -61,7 +61,7 @@ namespace DrillRunner.Tests.EditMode
         [Test] public void WorkshopTierChargesItsOwnPricesAndCannotRechargePocketUpgrades()
         {
             var service = Service(Max()); service.TryEvolve(true, out _);
-            Assert.That(service.Attributes.Power, Is.EqualTo(12)); Assert.That(service.Attributes.Energy, Is.EqualTo(200)); Assert.That(service.Attributes.Cruise, Is.EqualTo(12.2f));
+            Assert.That(service.Attributes.Power, Is.EqualTo(12)); Assert.That(service.Attributes.Energy, Is.EqualTo(90)); Assert.That(service.Attributes.Cruise, Is.EqualTo(12.2f));
             long spent = 0;
             foreach (UpgradeCategory category in Enum.GetValues(typeof(UpgradeCategory)))
             {
@@ -71,7 +71,7 @@ namespace DrillRunner.Tests.EditMode
             }
             Assert.That(service.Snapshot.Coins, Is.EqualTo(10000 - spent)); Assert.That(spent, Is.EqualTo(5230));
             Assert.That(service.Snapshot.PowerLevel, Is.EqualTo(5)); Assert.That(service.Snapshot.Copper, Is.Zero);
-            Assert.That(service.Attributes.Power, Is.EqualTo(18)); Assert.That(service.Attributes.Energy, Is.EqualTo(300));
+            Assert.That(service.Attributes.Power, Is.EqualTo(18)); Assert.That(service.Attributes.Energy, Is.EqualTo(140));
             Assert.That(service.Attributes.Cruise + service.Attributes.MaximumBoost, Is.EqualTo(26));
         }
         private sealed class SwitchStore : IProgressStore
@@ -126,7 +126,7 @@ namespace DrillRunner.Tests.EditMode
             service.TryPurchase(UpgradeCategory.EnergyCapacity, out _);
             var loaded = new ProgressionService(new FileProgressStore(directory), config);
             Assert.That(loaded.Snapshot.FormId, Is.EqualTo(ProgressionConfig.WorkshopForm)); Assert.That(loaded.Attributes.Power, Is.EqualTo(13));
-            Assert.That(loaded.Attributes.Energy, Is.EqualTo(220)); Assert.That(loaded.Snapshot.Copper, Is.EqualTo(12));
+            Assert.That(loaded.Attributes.Energy, Is.EqualTo(100)); Assert.That(loaded.Snapshot.Copper, Is.EqualTo(12));
             File.WriteAllText(disk.Path, "interrupted write"); var corrupt = new ProgressionService(new FileProgressStore(directory), config);
             Assert.That(corrupt.Writable, Is.False); Assert.That(corrupt.Snapshot.FormId, Is.EqualTo(ProgressionConfig.WorkshopForm));
             Assert.That(new FileProgressStore(directory).RecoverBackup(config, out _), Is.True);

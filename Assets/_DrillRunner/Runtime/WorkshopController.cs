@@ -13,9 +13,15 @@ namespace DrillRunner
         [SerializeField] private WorkshopView view;
         [SerializeField] private DrillVisuals visuals;
         [SerializeField] private bool editorGameplayEntry = true;
+        [SerializeField] private RapidRunBalance rapidRunBalance;
+        private RapidRunBalance sessionBalance;
+        public RapidRunBalance Balance => sessionBalance;
+        // Configuration injection for isolated historical-balance regression fixtures; normal play uses the authored asset.
+        internal static Func<RapidRunBalance, RapidRunBalance> BalanceFactory;
+        private int lastUiStartFrame = -1;
         private IProgressStore store;
         private ProgressionConfig sessionConfig;
-        private ProgressionConfig nextSessionConfig;
+        private readonly System.Collections.Generic.List<ProgressionConfig> sessionForms = new System.Collections.Generic.List<ProgressionConfig>();
         private RunRewards attempt, completed;
         private long token;
         private bool qaAttempt;
@@ -41,15 +47,21 @@ namespace DrillRunner
 
         private void Awake()
         {
-            sessionConfig = Instantiate(configuration);
-            if (sessionConfig.NextForm != null) { nextSessionConfig = Instantiate(sessionConfig.NextForm); sessionConfig.NextForm = nextSessionConfig; }
+            configuration.Validate(); ProgressionConfig previous = null;
+            for (var source = configuration; source != null; source = source.NextForm)
+            {
+                var copy = Instantiate(source); sessionForms.Add(copy);
+                if (previous == null) sessionConfig = copy; else previous.NextForm = copy; previous = copy;
+            }
             sessionConfig.Validate();
+            var balance = BalanceFactory != null ? BalanceFactory(rapidRunBalance) : rapidRunBalance;
+            if (balance != null) { balance.Validate(); sessionBalance = Instantiate(balance); }
             store = StoreFactory != null ? StoreFactory() : new FileProgressStore(Application.persistentDataPath);
             Service = new ProgressionService(store, sessionConfig); Message = Service.Status;
             resetGuard = () => !PendingBank && !IsEvolving;
             input.Motor.ResetGuard = resetGuard;
             if (visuals != null) visuals.Show(Service.ActiveForm);
-            input.Motor.ApplyAttributes(Service.Attributes); input.Restart();
+            ApplyRunConfiguration(); input.Restart();
         }
         private void OnEnable()
         {
@@ -71,7 +83,7 @@ namespace DrillRunner
         private void FinishEvolution(bool refresh = true)
         {
             evolutionRemaining = 0;
-            Message = "WORKSHOP DRILL UNLOCKED\nNew stats and upgrades are ready!";
+            Message = Service.ActiveForm.DisplayName.ToUpperInvariant() + " UNLOCKED\n" + (Service.ActiveForm.Stage == 8 ? "FINAL FORM · Your Quantum Drill is ready!" : "New stats and upgrades are ready!");
             if (refresh && view != null) { view.EvolutionPulse(1); view.Refresh(); }
             if (refresh) Feedback?.Invoke(WorkshopFeedback.EvolutionCompleted);
         }
@@ -81,7 +93,7 @@ namespace DrillRunner
             { if (!IsEvolving) { Message = error; view.Refresh(); } return false; }
             evolutionRemaining = 0.9f;
             if (visuals != null) visuals.Show(Service.ActiveForm);
-            Message = "EVOLVING · Assembling Workshop Drill..."; view.Refresh(); Feedback?.Invoke(WorkshopFeedback.EvolutionStarted); return true;
+            Message = "EVOLVING · Assembling " + Service.ActiveForm.DisplayName + "..."; view.Refresh(); Feedback?.Invoke(WorkshopFeedback.EvolutionStarted); return true;
         }
         private void Start()
         {
@@ -91,8 +103,8 @@ namespace DrillRunner
         private void OnDestroy()
         {
             if (input != null && input.Motor != null && input.Motor.ResetGuard == resetGuard) input.Motor.ResetGuard = null;
-            if (sessionConfig != null) Destroy(sessionConfig);
-            if (nextSessionConfig != null) Destroy(nextSessionConfig);
+            foreach (var form in sessionForms) if (form != null) Destroy(form);
+            if (sessionBalance != null) Destroy(sessionBalance);
         }
         private void OnAttempt(RunRewards ledger)
         {
@@ -135,13 +147,27 @@ namespace DrillRunner
             if (!Service.Writable) { Message = Service.Status; view.Refresh(); return false; }
             var state = input.Motor.Motion.State;
             if (state != RunState.Ready && state != RunState.RunEnded) return false;
-            qaAttempt = false; input.Motor.ApplyAttributes(Service.Attributes);
+            qaAttempt = false; ApplyRunConfiguration();
             if (visuals != null) visuals.Show(Service.ActiveForm);
             run.UseFixedSeed = false; // Normal Workshop/retry flow varies attempts; fixed QA replay remains available.
             input.Restart();
             if (token == 0 || run.Rewards.IsCompleted) { view.Refresh(); return false; }
             IsOpen = false; view.SetOpen(false); input.enabled = true;
             Message = "New run ready. Hold to charge and release to launch."; view.Refresh(); Feedback?.Invoke(WorkshopFeedback.StartedRun); return true;
+        }
+        private void ApplyRunConfiguration()
+        {
+            input.Motor.ApplyAttributes(Service.Attributes);
+            if (sessionBalance == null) return;
+            input.Motor.ApplyConsumption(sessionBalance.ForForm(Service.ActiveForm.FormId), sessionBalance.ChargeSeconds,
+                sessionBalance.ForForm(Service.ActiveForm.FormId).BoostDecayByDriveLevel[Service.Snapshot.Level(UpgradeCategory.DrivePower)]);
+            run.ConfigureRewards(sessionBalance.Rewards);
+        }
+        public bool StartRunFromUi()
+        {
+            if (lastUiStartFrame == Time.frameCount) return false;
+            if (!StartRun()) return false;
+            lastUiStartFrame = Time.frameCount; return true;
         }
         public bool Purchase(UpgradeCategory category)
         {
@@ -168,6 +194,31 @@ namespace DrillRunner
             store = new MemoryProgressStore(copy); Service = new ProgressionService(store, sessionConfig);
             IsSandbox = true; attempt = null; qaAttempt = false;
             input.Restart(); OpenWorkshop(); Message = "DEVELOPMENT SANDBOX: 10,000 Coins + " + copper + " Copper. Nothing is written to your local save."; view.Refresh();
+        }
+        public void UseTemporaryStage(int stage, long coins, long copper, long iron, long quartz, long alloyCore, long energyShard, bool maxCurrent)
+        {
+            var state = input.Motor.Motion.State;
+            if (PendingBank || IsEvolving || (state != RunState.Ready && state != RunState.RunEnded) || stage < 1 || stage > 8 ||
+                coins < 0 || copper < 0 || iron < 0 || quartz < 0 || alloyCore < 0 || energyShard < 0) return;
+            var copy = Service.Snapshot; copy.FormId = ProgressionConfig.FormIds[stage - 1]; copy.FormSchema = copy.EvolutionSchema = 1;
+            copy.Coins = coins; copy.Copper = copper; copy.Iron = iron; copy.Quartz = quartz; copy.AlloyCore = alloyCore; copy.EnergyShard = energyShard;
+            copy.PowerLevel = stage > 1 || maxCurrent ? sessionConfig.Power.MaximumLevel : 0;
+            copy.EnergyLevel = stage > 1 || maxCurrent ? sessionConfig.Energy.MaximumLevel : 0;
+            copy.DriveLevel = stage > 1 || maxCurrent ? sessionConfig.Drive.MaximumLevel : 0;
+            var workshop = sessionConfig.NextForm;
+            copy.WorkshopPowerLevel = stage > 2 || (stage == 2 && maxCurrent) ? workshop.Power.MaximumLevel : 0;
+            copy.WorkshopEnergyLevel = stage > 2 || (stage == 2 && maxCurrent) ? workshop.Energy.MaximumLevel : 0;
+            copy.WorkshopDriveLevel = stage > 2 || (stage == 2 && maxCurrent) ? workshop.Drive.MaximumLevel : 0;
+            copy.AdvancedForms = new FormUpgradeRecord[Math.Max(0, stage - 2)];
+            for (var i = 0; i < copy.AdvancedForms.Length; i++)
+            {
+                var form = sessionConfig.ForForm(ProgressionConfig.FormIds[i + 2]); var max = i + 3 < stage || maxCurrent;
+                copy.AdvancedForms[i] = new FormUpgradeRecord { FormId = form.FormId, Power = max ? form.Power.MaximumLevel : 0,
+                    Energy = max ? form.Energy.MaximumLevel : 0, Drive = max ? form.Drive.MaximumLevel : 0 };
+            }
+            copy.Validate(sessionConfig); store = new MemoryProgressStore(copy); Service = new ProgressionService(store, sessionConfig);
+            IsSandbox = true; attempt = null; qaAttempt = false; ApplyRunConfiguration(); visuals.Show(Service.ActiveForm);
+            input.Restart(); OpenWorkshop(); Message = "DEVELOPMENT SANDBOX · EVO " + stage + "\nStage shortcut and all balances are temporary; no disk writes."; view.Refresh();
         }
         public bool RecoverBackup()
         {

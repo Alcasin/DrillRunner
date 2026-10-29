@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c3155a180b4a88408fe723389ec9143, type: 3}
+  m_Name: QuantumDrillProgression
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.ProgressionConfig
+  FormId: quantum_drill
+  DisplayName: Quantum Drill
+  VisualPrefab: {fileID: 5817870373375889687, guid: 7618a30f174892e46a981dc028026f61, type: 3}
+  PreviewImage: {fileID: 2800000, guid: 5c5cadb28504c67499bac4a176a25d3d, type: 3}
+  NextForm: {fileID: 0}
+  EvolutionCopper: 0
+  EvolutionResources: []
+  SpeedCeiling: 26
+  Power:
+    Costs: 18150000201c0000802500003831000074400000
+    Values:
+    - 195
+    - 210
+    - 225
+    - 242
+    - 260
+    - 280
+  Energy:
+    Costs: 24130000c8190000c4220000182e0000283c0000
+    Values:
+    - 1080
+    - 1140
+    - 1200
+    - 1265
+    - 1330
+    - 1400
+  Drive:
+    Costs: f81100009c18000034210000c02b000008390000
+    Values:
+    - 13
+    - 13
+    - 13
+    - 13
+    - 13
+    - 13
+  MinimumBoost:
+  - 11.5
+  - 11.75
+  - 12
+  - 12.25
+  - 12.5
+  - 12.75
+  MaximumBoost:
+  - 13
+  - 13
+  - 13
+  - 13
+  - 13
+  - 13
+  Recovery:
+  - 96
+  - 98
+  - 100
+  - 102
+  - 104
+  - 106

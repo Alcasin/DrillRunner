@@ -26,6 +26,8 @@ namespace DrillRunner
         private RunRewards displayedRun;
         private RunState previousState = (RunState)(-1);
         private DrillObstacle previousTarget;
+        private int lastRestartFrame = -1;
+        private float nextAttributeRefresh;
 
         public DrillPointerInput Input => input;
         public Button RestartButton => restartButton;
@@ -40,7 +42,9 @@ namespace DrillRunner
         private void OnDisable() => restartButton.onClick.RemoveListener(RestartClicked);
         private void RestartClicked()
         {
-            if (workshop != null && input.Motor.Motion.State == RunState.RunEnded) workshop.StartRun();
+            if (lastRestartFrame == Time.frameCount) return;
+            lastRestartFrame = Time.frameCount;
+            if (workshop != null && input.Motor.Motion.State == RunState.RunEnded) workshop.StartRunFromUi();
             else Restart();
         }
         public void Restart() => input.Restart();
@@ -52,8 +56,11 @@ namespace DrillRunner
             if (attributesText != null && input.Motor.Energy != null)
             {
                 var energy = Mathf.CeilToInt(input.Motor.Energy.Remaining);
-                if (energy != shownEnergy || shownPower != input.Motor.DrillPower || shownCapacity != input.Motor.Energy.Capacity)
+                var attributesChanged = shownPower != input.Motor.DrillPower || shownCapacity != input.Motor.Energy.Capacity;
+                var refreshDue = workshop == null || workshop.Balance == null || Time.unscaledTime >= nextAttributeRefresh || energy == 0 || motion.State == RunState.Ready;
+                if (attributesChanged || (energy != shownEnergy && refreshDue))
                 {
+                    nextAttributeRefresh = Time.unscaledTime + 0.1f; // Continuous Energy fill; bounded numeric-text rebuilds in rapid runs.
                     shownEnergy = energy; shownPower = input.Motor.DrillPower; shownCapacity = input.Motor.Energy.Capacity;
                     attributesText.text = "POWER " + shownPower.ToString("0.#") + "     ENERGY " + energy + " / " + shownCapacity.ToString("0.#");
                 }
@@ -67,6 +74,7 @@ namespace DrillRunner
             if (previousState == motion.State && previousTarget == target)
                 return;
             previousState = motion.State;
+            restartButton.GetComponentInChildren<Text>().text = motion.State == RunState.RunEnded ? "RETRY" : "RESET";
             previousTarget = target;
             if (materialText != null)
                 materialText.text = target != null && target.Durability != null ? target.Durability.DisplayName +

@@ -25,7 +25,7 @@ namespace DrillRunner.Tests.PlayMode
         [UnitySetUp]
         public IEnumerator Open()
         {
-            yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null;
+            yield return HistoricalRunFixture.LoadScene(); yield return null;
             motor = Object.FindFirstObjectByType<DrillMotor>(); run = Object.FindFirstObjectByType<RunProgress>();
             track = run.Track; hud = Object.FindFirstObjectByType<PrototypeHud>();
             motor.GetComponent<DrillPointerInput>().enabled = false;
@@ -34,7 +34,7 @@ namespace DrillRunner.Tests.PlayMode
         [UnityTearDown]
         public IEnumerator Close()
         {
-            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return HistoricalRunFixture.UnloadScene();
             foreach (var value in owned) if (value != null) Object.Destroy(value);
             owned.Clear();
         }

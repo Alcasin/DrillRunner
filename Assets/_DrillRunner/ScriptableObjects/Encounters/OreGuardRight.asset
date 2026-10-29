@@ -15,11 +15,11 @@ MonoBehaviour:
   Section: {fileID: 340570497106052616, guid: 1325013e5d2f5fd43932aba9dbae1ad2, type: 3}
   Category: 2
   Arrangement: 3
-  Intent: Brick then Ore on one aligned route. At Power 5 mining costs 51.6 Energy;
-    the bypass costs no drilling Energy.
+  Intent: Optional Brick guard and Ore; early Capacity/Power upgrades make the route
+    more affordable. A full-footprint bypass remains.
   Pressure: 2
   MinimumOrdinal: 3
-  EarlyWeight: 0
+  EarlyWeight: 1
   Weight: 2
   LateWeight: 2
   BypassX: -2.05

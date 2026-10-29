@@ -22,13 +22,13 @@ namespace DrillRunner.Tests.PlayMode
         [UnitySetUp] public IEnumerator Open()
         {
             WorkshopController.StoreFactory = () => new MemoryProgressStore(new PlayerProgress { Coins = 10000, Copper = 24 });
-            yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null;
+            yield return HistoricalRunFixture.LoadScene(); yield return null;
             flow = Object.FindFirstObjectByType<WorkshopController>(); motor = flow.Run.Motor; motor.enabled = false;
             motor.GetComponent<DrillPointerInput>().enabled = false; presentation = Object.FindFirstObjectByType<DrillPresentation>();
             hud = Object.FindFirstObjectByType<PrototypeHud>(); presentation.SendMessage("OnApplicationFocus", true);
         }
         [UnityTearDown] public IEnumerator Close()
-        { yield return SceneManager.LoadSceneAsync("SampleScene"); WorkshopController.StoreFactory = () => new MemoryProgressStore(); if (legacyCatalog != null) Object.Destroy(legacyCatalog); }
+        { yield return HistoricalRunFixture.UnloadScene(); WorkshopController.StoreFactory = () => new MemoryProgressStore(); if (legacyCatalog != null) Object.Destroy(legacyCatalog); }
         private void Launch() { motor.Motion.Press(); motor.Simulate(1.5f); motor.Motion.Release(); motor.Simulate(0.01f); }
         private void Until(Func<bool> condition)
         { for (var i = 0; i < 6000 && !condition(); i++) motor.Simulate(1f / 120); Assert.That(condition(), Is.True); }

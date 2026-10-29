@@ -15,7 +15,7 @@ namespace DrillRunner.Tests.EditMode
         [Test] public void TwoAuthoredFormsHaveDistinctModelsWithinTheOriginalFootprintAndOneWiredController()
         {
             var root = AssetDatabase.LoadAssetAtPath<ProgressionConfig>(WorkshopSetup.ConfigPath); root.Validate();
-            Assert.That(root.NextForm.FormId, Is.EqualTo(ProgressionConfig.WorkshopForm)); Assert.That(root.NextForm.NextForm, Is.Null);
+            Assert.That(root.NextForm.FormId, Is.EqualTo(ProgressionConfig.WorkshopForm)); Assert.That(root.NextForm.NextForm.FormId, Is.EqualTo("industrial_drill"));
             Assert.That(root.EvolutionCopper, Is.EqualTo(12)); Assert.That(root.VisualPrefab, Is.Not.SameAs(root.NextForm.VisualPrefab));
             foreach (var form in new[] { root, root.NextForm })
             { EvolutionSetup.ValidateVisual(form.VisualPrefab); Assert.That(form.PreviewImage, Is.Not.Null); }

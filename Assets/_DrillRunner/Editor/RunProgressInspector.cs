@@ -9,6 +9,13 @@ namespace DrillRunner.Editor
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
+            var diagnostics = ((RunProgress)target).Motor != null ? ((RunProgress)target).Motor.Diagnostics : null;
+            if (Application.isPlaying && diagnostics != null)
+            {
+                EditorGUILayout.LabelField("Run seconds / ending", diagnostics.Seconds.ToString("0.00") + " / " + (diagnostics.EndedByEnergy ? "Energy empty" : "Active"));
+                EditorGUILayout.LabelField("Move / drill / blocked seconds", diagnostics.MovingSeconds.ToString("0.00") + " / " + diagnostics.DrillingSeconds.ToString("0.00") + " / " + diagnostics.BlockedSeconds.ToString("0.00"));
+                EditorGUILayout.LabelField("Move / drill / blocked Energy", diagnostics.MovingEnergy.ToString("0.00") + " / " + diagnostics.DrillingEnergy.ToString("0.00") + " / " + diagnostics.BlockedEnergy.ToString("0.00"));
+            }
             var run = (RunProgress)target;
             if (Application.isPlaying && run.Rewards != null)
                 EditorGUILayout.LabelField("Active run seed", run.Rewards.Seed.ToString());

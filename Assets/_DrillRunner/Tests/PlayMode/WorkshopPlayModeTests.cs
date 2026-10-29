@@ -25,7 +25,7 @@ namespace DrillRunner.Tests.PlayMode
             var disk = new FileProgressStore(directory); disk.Load();
             Assert.That(disk.TrySave(new PlayerProgress { Coins = 1000, Copper = 12 }, out _), Is.True);
             WorkshopController.StoreFactory = () => new FileProgressStore(directory);
-            yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null;
+            yield return HistoricalRunFixture.LoadScene(); yield return null;
             Find(); Assert.That(flow.SavePath.StartsWith(directory, StringComparison.Ordinal), Is.True);
             Assert.That(flow.OpenWorkshop(), Is.True);
         }
@@ -36,7 +36,7 @@ namespace DrillRunner.Tests.PlayMode
         }
         [UnityTearDown] public IEnumerator Close()
         {
-            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return HistoricalRunFixture.UnloadScene();
             WorkshopController.StoreFactory = () => new MemoryProgressStore();
             if (ownedCatalog != null) Object.Destroy(ownedCatalog);
             if (Directory.Exists(directory)) Directory.Delete(directory, true);
@@ -135,7 +135,7 @@ namespace DrillRunner.Tests.PlayMode
             var saved = flow.Service.Snapshot;
             hud.RestartButton.onClick.Invoke(); Assert.That(motor.Energy.Capacity, Is.EqualTo(130)); Assert.That(motor.Energy.Remaining, Is.EqualTo(130));
             Assert.That(flow.Service.Snapshot.Coins, Is.EqualTo(saved.Coins));
-            yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null; Find();
+            yield return HistoricalRunFixture.LoadScene(); yield return null; Find();
             Assert.That(motor.Energy.Capacity, Is.EqualTo(130)); Assert.That(flow.Service.Snapshot.EnergyLevel, Is.EqualTo(2));
             Assert.That(flow.Service.Snapshot.Coins, Is.EqualTo(saved.Coins)); Assert.That(flow.Service.Snapshot.Copper, Is.EqualTo(saved.Copper));
         }
@@ -150,7 +150,7 @@ namespace DrillRunner.Tests.PlayMode
         [UnityTest] public IEnumerator SaveFailureKeepsFrozenRewardsAndBlocksResetUntilTheBankCanBeSaved()
         {
             var store = new SwitchStore(); WorkshopController.StoreFactory = () => store;
-            yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null; Find();
+            yield return HistoricalRunFixture.LoadScene(); yield return null; Find();
             flow.OpenWorkshop(); store.Fail = true;
             Assert.That(flow.Purchase(UpgradeCategory.DrillPower), Is.False);
             Assert.That(flow.Service.Snapshot.Coins, Is.EqualTo(100)); Assert.That(flow.Service.Snapshot.PowerLevel, Is.Zero);
@@ -169,7 +169,7 @@ namespace DrillRunner.Tests.PlayMode
         {
             var path = new FileProgressStore(directory).Path; File.WriteAllText(path, "truncated profile");
             var backup = path + ".bak"; if (File.Exists(backup)) File.Delete(backup);
-            yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null; Find();
+            yield return HistoricalRunFixture.LoadScene(); yield return null; Find();
             Assert.That(flow.IsOpen, Is.True); Assert.That(flow.Service.Writable, Is.False);
             Assert.That(flow.View.StartButton.interactable, Is.False); Assert.That(flow.View.PurchaseButtons.All(b => !b.interactable), Is.True);
             Assert.That(flow.StartRun(), Is.False); Assert.That(flow.Purchase(UpgradeCategory.DrillPower), Is.False);
@@ -200,7 +200,7 @@ namespace DrillRunner.Tests.PlayMode
             Assert.That(flow.StartRun(), Is.True); Assert.That(motor.DrillPower, Is.EqualTo(10)); Assert.That(motor.Energy.Capacity, Is.EqualTo(180));
             Launch(); motor.Simulate(0.5f); End(); Assert.That(flow.IsBanked, Is.True);
             Assert.That(File.ReadAllBytes(new FileProgressStore(directory).Path), Is.EqualTo(original));
-            yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null; Find();
+            yield return HistoricalRunFixture.LoadScene(); yield return null; Find();
             Assert.That(flow.Service.Snapshot.PowerLevel, Is.Zero); Assert.That(motor.DrillPower, Is.EqualTo(5));
             var beforeQa = flow.Service.Snapshot.Coins;
             flow.StartQaRun(10, 8); Launch(); motor.Simulate(0.5f); End();

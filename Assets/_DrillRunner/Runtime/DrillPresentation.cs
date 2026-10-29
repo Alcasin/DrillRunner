@@ -85,7 +85,7 @@ namespace DrillRunner
                 if (active && State == RunState.Moving && (previous == RunState.Charging || previous == RunState.Ready || previous == (RunState)(-1)))
                 { sounds.Play(FeedbackCue.Launch); launchResponse = 0.25f; }
                 if (active && State == RunState.Blocked) sounds.Play(FeedbackCue.Blocked);
-                if (active && State == RunState.RunEnded) { effects.StopAll(); hud.ClearToast(); sounds.Play(FeedbackCue.Finish); }
+                if (active && State == RunState.RunEnded) { launchResponse = 0.15f; effects.StopAll(); hud.ClearToast(); sounds.Play(FeedbackCue.Finish); }
                 previous = State; wasOpen = flow.IsOpen;
             }
             var loop = flow.IsEvolving ? (int)FeedbackCue.Charge : !active ? -1 : State == RunState.Charging ? (int)FeedbackCue.Charge : drilling ? (int)FeedbackCue.Drill : -1;

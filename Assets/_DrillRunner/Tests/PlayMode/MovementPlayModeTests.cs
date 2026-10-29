@@ -26,7 +26,7 @@ namespace DrillRunner.Tests.PlayMode
         public IEnumerator OpenPrototype()
         {
             base.Setup();
-            yield return SceneManager.LoadSceneAsync("Gameplay");
+            yield return HistoricalRunFixture.LoadScene();
             motor = Object.FindFirstObjectByType<DrillMotor>();
             input = motor.GetComponent<DrillPointerInput>();
             follower = Object.FindFirstObjectByType<RunnerCamera>();
@@ -41,7 +41,7 @@ namespace DrillRunner.Tests.PlayMode
         public IEnumerator ClosePrototype()
         {
             // Destroy subscribers before InputTestFixture restores the real input system.
-            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return HistoricalRunFixture.UnloadScene();
             base.TearDown();
         }
 

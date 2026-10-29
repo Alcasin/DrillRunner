@@ -17,6 +17,8 @@ namespace DrillRunner
         [SerializeField] private Text requirements, formName;
         [SerializeField] private RawImage formPreview;
         [SerializeField] private Text coinBalance, copperBalance;
+        [SerializeField] private Text evolutionResources;
+        public Text ResourceSummary => evolutionResources;
         [SerializeField] private Image evolutionGlow;
         [SerializeField] private float workshopSaveTop = 846;
         private string previousMessage;
@@ -51,7 +53,7 @@ namespace DrillRunner
         private void BuyPower() => controller.Purchase(UpgradeCategory.DrillPower);
         private void BuyEnergy() => controller.Purchase(UpgradeCategory.EnergyCapacity);
         private void BuyDrive() => controller.Purchase(UpgradeCategory.DrivePower);
-        private void StartAttempt() => controller.StartRun();
+        private void StartAttempt() => controller.StartRunFromUi();
         private void Open() => controller.OpenWorkshop();
         private void Save() => controller.RetryBank();
         private void Evolve() => controller.Evolve();
@@ -96,18 +98,42 @@ namespace DrillRunner
             ((RectTransform)retrySave.transform).anchoredPosition = new Vector2(0, controller.IsOpen ? -workshopSaveTop : -530);
             startRun.gameObject.SetActive(!controller.PendingBank);
             startRun.interactable = controller.Service.Writable && !controller.PendingBank && !controller.IsEvolving;
-            if (formName != null) formName.text = config.DisplayName.ToUpperInvariant() + (profile.FormId == ProgressionConfig.PocketForm ? "  /  EVO 1" : "  /  EVO 2");
+            if (formName != null) formName.text = config.DisplayName.ToUpperInvariant() + "  /  EVO " + config.Stage;
+            if (evolutionResources != null)
+            {
+                var resources = "";
+                foreach (EvolutionResource resource in Enum.GetValues(typeof(EvolutionResource)))
+                {
+                    if (resource == EvolutionResource.Copper) continue;
+                    var relevant = config.NextForm != null && Array.Exists(config.RequiredResources, c => c.Resource == resource);
+                    if (profile.Resource(resource) > 0 || relevant) resources += (resources.Length == 0 ? "" : "    ·    ") + ResourceCost.Name(resource) + " " + profile.Resource(resource);
+                }
+                evolutionResources.text = resources;
+                if (formPreview != null) formPreview.rectTransform.sizeDelta = new Vector2(formPreview.rectTransform.sizeDelta.x, resources.Length > 0 ? 82 : 116);
+            }
             if (formPreview != null) formPreview.texture = config.PreviewImage;
-            if (requirements != null) requirements.text = controller.Evolution.Description;
+            if (requirements != null) { requirements.fontSize = config.NextForm != null && config.RequiredResources.Length > 1 ? 14 : 16; requirements.text = controller.Evolution.Description; }
             if (evolve != null) { evolve.gameObject.SetActive(controller.Evolution.HasNext); evolve.interactable = controller.Evolution.Ready; }
             for (var i = 0; i < 3; i++)
             {
                 var category = (UpgradeCategory)i; var table = config.Table(category); var level = profile.Level(category); var max = level == table.MaximumLevel;
                 var title = i == 0 ? "DRILL POWER" : i == 1 ? "ENERGY CAPACITY" : "DRIVE POWER";
                 var unit = i == 0 ? "Power " : i == 1 ? "Max Energy " : "Cruise ";
-                rows[i].text = title + "    " + level + " / " + table.MaximumLevel + "\n" + unit + table.Values[level].ToString("0.#") +
-                    (max ? "  |  MAX" : "  →  " + table.Values[level + 1].ToString("0.#")) +
+                var value = i == 2 && config.Stage >= 3 ? "Launch " + config.MinimumBoost[level].ToString("0.##") +
+                    (max ? "  |  MAX" : " → " + config.MinimumBoost[level + 1].ToString("0.##")) + "  ·  Cruise " + config.Drive.Values[level].ToString("0.#") :
+                    unit + table.Values[level].ToString("0.#") + (max ? "  |  MAX" : "  →  " + table.Values[level + 1].ToString("0.#"));
+                rows[i].text = title + "    " + level + " / " + table.MaximumLevel + "\n" + value +
                     (i == 2 ? "\nRecovery " + config.Recovery[level].ToString("0.#") + (max ? "" : " → " + config.Recovery[level + 1].ToString("0.#")) : "");
+                if (i == 2 && controller.Balance != null)
+                {
+                    var coast = controller.Balance.ForForm(config.FormId).BoostDecayByDriveLevel;
+                    var starterCoast = controller.Balance.ForForm(ProgressionConfig.PocketForm).BoostDecayByDriveLevel[0];
+                    var carry = "Coast ×" + (starterCoast / coast[level]).ToString("0.##") + (max ? "" : " → " + (starterCoast / coast[level + 1]).ToString("0.##"));
+                    rows[i].text = title + "    " + level + " / " + table.MaximumLevel + "\n" +
+                        (config.Stage >= 3 ? "Launch " + config.MinimumBoost[level].ToString("0.##") + (max ? "" : " → " + config.MinimumBoost[level + 1].ToString("0.##")) :
+                            "Cruise " + table.Values[level].ToString("0.#") + (max ? "" : " → " + table.Values[level + 1].ToString("0.#"))) + "  ·  " + carry +
+                        "\nRecovery " + config.Recovery[level].ToString("0.#") + (max ? "  |  MAX" : " → " + config.Recovery[level + 1].ToString("0.#"));
+                }
                 prices[i].text = max ? "MAX" : "UPGRADE  ·  " + table.Costs[level] + " COINS";
                 purchase[i].interactable = controller.CanPurchase && !max && profile.Coins >= table.Costs[level];
             }

@@ -11,6 +11,8 @@ namespace DrillRunner
         [Min(0.01f)] public float EnergyCapacity = 100;
         [Min(0)] public float MovingEnergyPerSecond = 0.7f;
         [Min(0)] public float BlockedEnergyPerSecond = 0.5f;
+        [Min(0)] public float DrillingBaseEnergyPerSecond;
+        [Min(0)] public float DrillingMaterialScale = 1;
 
         public void Validate()
         {
@@ -19,6 +21,8 @@ namespace DrillRunner
             DrillMovementSettings.Positive(EnergyCapacity, nameof(EnergyCapacity));
             DrillRules.NonNegative(MovingEnergyPerSecond, nameof(MovingEnergyPerSecond));
             DrillRules.NonNegative(BlockedEnergyPerSecond, nameof(BlockedEnergyPerSecond));
+            DrillRules.NonNegative(DrillingBaseEnergyPerSecond, nameof(DrillingBaseEnergyPerSecond));
+            DrillRules.NonNegative(DrillingMaterialScale, nameof(DrillingMaterialScale));
         }
 
         internal DrillingSettings Snapshot()

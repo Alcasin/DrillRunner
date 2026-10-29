@@ -18,6 +18,7 @@ MonoBehaviour:
   PreviewImage: {fileID: 2800000, guid: 9c617783357b15843a30736677dea519, type: 3}
   NextForm: {fileID: 11400000, guid: 4c0747807e50d2b44a65c07af64e9ef3, type: 2}
   EvolutionCopper: 12
+  EvolutionResources: []
   SpeedCeiling: 24
   Power:
     Costs: 3c00000064000000a0000000f000000054010000
@@ -31,12 +32,12 @@ MonoBehaviour:
   Energy:
     Costs: 320000005a0000008c000000d20000002c010000
     Values:
-    - 100
-    - 115
-    - 130
-    - 145
-    - 160
-    - 180
+    - 25
+    - 30
+    - 35
+    - 40
+    - 45
+    - 55
   Drive:
     Costs: 320000005a0000008c000000d20000002c010000
     Values:

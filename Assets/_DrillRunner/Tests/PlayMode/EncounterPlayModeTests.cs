@@ -29,7 +29,7 @@ namespace DrillRunner.Tests.PlayMode
         [UnitySetUp] public IEnumerator Open() { yield return Load(); }
         private IEnumerator Load()
         {
-            WorkshopController.StoreFactory = () => new MemoryProgressStore(); yield return SceneManager.LoadSceneAsync("Gameplay"); yield return null;
+            WorkshopController.StoreFactory = () => new MemoryProgressStore(); yield return HistoricalRunFixture.LoadScene(); yield return null;
             flow = Object.FindFirstObjectByType<WorkshopController>(); motor = flow.Run.Motor; track = flow.Run.Track;
             hud = Object.FindFirstObjectByType<PrototypeHud>(); presentation = Object.FindFirstObjectByType<DrillPresentation>();
             motor.enabled = false; motor.GetComponent<DrillPointerInput>().enabled = false; presentation.SendMessage("OnApplicationFocus", true);
@@ -41,7 +41,7 @@ namespace DrillRunner.Tests.PlayMode
         }
         [UnityTearDown] public IEnumerator Close()
         {
-            yield return SceneManager.LoadSceneAsync("SampleScene"); WorkshopController.StoreFactory = () => new MemoryProgressStore();
+            yield return HistoricalRunFixture.UnloadScene(); WorkshopController.StoreFactory = () => new MemoryProgressStore();
             foreach (var item in owned) if (item != null) Object.Destroy(item); owned.Clear();
         }
         private void Launch() { motor.Motion.Press(); motor.Simulate(1.5f); motor.Motion.Release(); motor.Simulate(0.001f); }

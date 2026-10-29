@@ -16,8 +16,11 @@ MonoBehaviour:
   DisplayName: Workshop Drill
   VisualPrefab: {fileID: 7320410097421691794, guid: 5438e3655862fbe4582c0085b69863e5, type: 3}
   PreviewImage: {fileID: 2800000, guid: 0bc55999bdc530043ac4c605cc77bc38, type: 3}
-  NextForm: {fileID: 0}
+  NextForm: {fileID: 11400000, guid: c2995f6dcb60b964185d4f5c18f7e1ce, type: 2}
   EvolutionCopper: 0
+  EvolutionResources:
+  - Resource: 0
+    Amount: 24
   SpeedCeiling: 26
   Power:
     Costs: 96000000e600000054010000e00100008a020000
@@ -31,12 +34,12 @@ MonoBehaviour:
   Energy:
     Costs: 82000000d200000036010000b801000058020000
     Values:
-    - 200
-    - 220
-    - 240
-    - 260
-    - 280
-    - 300
+    - 90
+    - 100
+    - 110
+    - 120
+    - 130
+    - 140
   Drive:
     Costs: 82000000d200000036010000b801000058020000
     Values:

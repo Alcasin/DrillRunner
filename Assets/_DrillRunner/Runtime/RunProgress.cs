@@ -23,6 +23,11 @@ namespace DrillRunner
         public DrillMotor Motor => motor;
         public event Action<RunRewards> AttemptBegan;
         public event Action<RunRewards> Completed;
+        public void ConfigureRewards(RewardSettings tuning)
+        {
+            if (motor.Motion.State != RunState.Ready && motor.Motion.State != RunState.RunEnded) throw new InvalidOperationException("Reward tuning is captured between attempts.");
+            tuning.Validate(); rewards = new RewardSettings { DistancePerPayout = tuning.DistancePerPayout, CoinsPerPayout = tuning.CoinsPerPayout, ObstacleCoinMultiplier = tuning.ObstacleCoinMultiplier };
+        }
 
         private readonly struct RewardBinding
         {
