@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b60dce250862a843adefa2670c041a9, type: 3}
+  m_Name: QuarryEncounters
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.EncounterLibrary
+  Catalog: {fileID: 11400000, guid: 48c3a3b9693f79843b577df71932ba43, type: 2}
+  ResourceKind: 2
+  Patterns:
+  - {fileID: 11400000, guid: 8afe4cfa36844b44c91af9c6a5b83765, type: 2}
+  - {fileID: 11400000, guid: 4539415e2b967da4081117603bcd1ffb, type: 2}
+  - {fileID: 11400000, guid: f14a849dda9d29e46a8fdbb79ceea809, type: 2}
+  - {fileID: 11400000, guid: d307d5556e4821b4490e14c5fb69799f, type: 2}
+  - {fileID: 11400000, guid: cbd3fa7766ddb5b40b3adcb0892e0c8d, type: 2}
+  - {fileID: 11400000, guid: 3b077c3ed7c806a40a5478b59f4a971e, type: 2}
+  - {fileID: 11400000, guid: 1f46a1a9a931c404c94f6ccd93892e74, type: 2}
+  - {fileID: 11400000, guid: 80e3934f6930e8440b64bd89a65e516c, type: 2}
+  - {fileID: 11400000, guid: 441c46850ce3c3f4688bf45237a21abd, type: 2}
+  - {fileID: 11400000, guid: 664cd08ef46b39f4184980b6d817dd16, type: 2}
+  - {fileID: 11400000, guid: 58e43b4fa14d8c6489f473e8bcded9c7, type: 2}
+  - {fileID: 11400000, guid: ac8eff1d55ec77848878c65648fc262e, type: 2}
+  - {fileID: 11400000, guid: e34d71bb543f0f64f9a5508d54d475ae, type: 2}
+  - {fileID: 11400000, guid: a02111697c1d29e43857eace53e9d832, type: 2}
+  IntroductionSections: 1
+  OpeningBufferSections: 0
+  FirstSelectionCopper: 1
+  OpeningCopperBySelection: 1
+  CalmFirstEncounter: 1
+  ReliefAfterHighPressure: 1
+  ArrangementMemory: 2
+  EmptyRecoverySpacing: 4
+  Revision: 0
+  EarlySections: 3
+  RicherFromSection: 8
+  MaximumCopperGap: 3
+  MaximumRecoveryGap: 6
+  MaximumConsecutivePressure: 1
+  ReactionSeconds: 0.35
+  SteeringTolerance: 0.04
+  StartingOreEnergyBudget: 90

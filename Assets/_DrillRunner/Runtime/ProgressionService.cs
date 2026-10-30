@@ -10,6 +10,9 @@ namespace DrillRunner
         private PlayerProgress current;
         private bool writing;
         private long activeAttempt;
+        private string activeRegion;
+        public long Revision => current.Revision;
+        public string SelectedRegionId => current.SelectedRegion;
         public PlayerProgress Snapshot => current.Copy();
         public bool Writable { get; private set; }
         public string Status { get; private set; }
@@ -73,24 +76,41 @@ namespace DrillRunner
             return Commit(next, out error);
         }
 
-        public bool TryBeginAttempt(out long token, out string error)
+        public bool TrySelectRegion(RegionDefinition region, bool workshopAllowed, out string error)
+        {
+            error="Region unavailable.";if(region==null||!workshopAllowed)return false;
+            try{region.Validate();if(!region.CanPlay(ActiveForm.Stage))return false;}
+            catch(ArgumentException e){error=e.Message;return false;}
+            if(current.SelectedRegion==region.Id){error=null;return true;}
+            var next=current.Copy();next.SelectRegion(region.Id);return Commit(next,out error);
+        }
+        public bool TryBeginAttempt(out long token,out string error) => TryBeginAttempt(null,out token,out error);
+        public bool TryBeginAttempt(string regionId,out long token, out string error)
         {
             token = 0; error = null;
             if (current.IssuedAttempt == long.MaxValue) { error = "Attempt counter exhausted."; return false; }
+            if(regionId!=null && (!RegionIds.Implemented(regionId)||RegionIds.UnlockStage(regionId)>ActiveForm.Stage)){error="Region is locked or unimplemented.";return false;}
             var next = current.Copy(); next.IssuedAttempt++;
             if (!Commit(next, out error)) return false;
-            activeAttempt = token = next.IssuedAttempt; return true;
+            activeRegion=regionId;activeAttempt = token = next.IssuedAttempt; return true;
         }
 
-        public bool TryBank(long token, long coins, long copper, out string error)
+        public bool TryBank(long token,long coins,long copper,out string error) => Bank(token,coins,copper,0,0,0,0,null,0,out error);
+        public bool TryBank(long token,RunRewards completed,out string error)
+        {
+            error="Invalid completed regional run.";if(completed==null||!completed.IsCompleted)return false;
+            return Bank(token,completed.Coins,completed.Copper,completed.Iron,completed.Quartz,completed.AlloyCore,completed.EnergyShard,completed.RegionId,completed.Distance,out error);
+        }
+        private bool Bank(long token,long coins,long copper,long iron,long quartz,long alloy,long shard,string regionId,double distance,out string error)
         {
             error = null;
-            if (token <= 0 || coins < 0 || copper < 0) { error = "Invalid completed-run rewards."; return false; }
+            if (token <= 0 || coins < 0 || copper < 0 || iron < 0 || quartz < 0 || alloy < 0 || shard < 0 || double.IsNaN(distance) || double.IsInfinity(distance) || distance < 0 || (regionId != null && !RegionIds.Implemented(regionId)) || (iron > 0 && regionId != RegionIds.Quarry) || ((quartz > 0 || alloy > 0) && regionId != RegionIds.Advanced) || (shard > 0 && regionId != RegionIds.Energy)) { error = "Invalid completed-run rewards."; return false; }
             if (token <= current.BankedAttempt) return true; // Durable monotonic receipt, including duplicate/late callbacks.
-            if (token != activeAttempt || token > current.IssuedAttempt) { error = "This attempt does not belong to the current session."; return false; }
+            if (token != activeAttempt || token > current.IssuedAttempt || (regionId != null && regionId != activeRegion)) { error = "This attempt does not belong to the current session."; return false; }
             try
             {
                 var next = current.Copy(); next.Coins = checked(next.Coins + coins); next.Copper = checked(next.Copper + copper);
+                next.Iron=checked(next.Iron+iron);next.Quartz=checked(next.Quartz+quartz);next.AlloyCore=checked(next.AlloyCore+alloy);next.EnergyShard=checked(next.EnergyShard+shard);if(regionId!=null)next.RecordDistance(regionId,distance);
                 next.BankedAttempt = token; return Commit(next, out error);
             }
             catch (OverflowException) { error = "Currency limit reached; rewards were not changed."; return false; }

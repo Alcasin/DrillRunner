@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d8b9c12e6c844b4495b6da844764eed, type: 3}
+  m_Name: quarry
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.RegionDefinition
+  Id: quarry
+  DisplayName: Quarry / Scrapworks
+  Identity: Cool rock, silver Iron and warm industrial machinery
+  UnlockStage: 3
+  Implemented: 1
+  Track: {fileID: 11400000, guid: 48c3a3b9693f79843b577df71932ba43, type: 2}
+  Encounters: {fileID: 11400000, guid: 395c52367c9036242b529f0a4d3a4c9d, type: 2}
+  Introduction: {fileID: 440366656029926853, guid: cbec0b1139ae97c46945a495fabcb03c, type: 3}
+  Environment: {fileID: 7204885082320718718, guid: cfddaae62aaf9c044b0369747c72581e, type: 3}
+  Materials:
+  - {fileID: 11400000, guid: c810d0cc9c797b54289d786f993c63ee, type: 2}
+  - {fileID: 11400000, guid: 5177609fa8365834688780d4a1957ef1, type: 2}
+  - {fileID: 11400000, guid: 220f5ce57054b0b49b3e0b9ebf62c19f, type: 2}
+  - {fileID: 11400000, guid: 17b8f2ee77a83cd45921d82ab3b4fb44, type: 2}
+  Resources: 01000000
+  Sky: {r: 0.69, g: 0.74, b: 0.79, a: 1}

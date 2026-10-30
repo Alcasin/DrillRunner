@@ -3,7 +3,8 @@ using UnityEngine;
 
 namespace DrillRunner
 {
-    public enum ObstacleRewardKind { Coins, Copper }
+    // Append-only: existing serialized Coins/Copper/Iron values retain their identity.
+    public enum ObstacleRewardKind { Coins, Copper, Iron, Quartz, AlloyCore, EnergyShard }
     [CreateAssetMenu(menuName = "DrillRunner/Material Definition")]
     public sealed class MaterialDefinition : ScriptableObject
     {
@@ -15,6 +16,8 @@ namespace DrillRunner
         public Color FeedbackColor = new Color(0.65f, 0.36f, 0.12f);
         public ObstacleRewardKind RewardKind;
         [Min(0)] public int RewardAmount;
+
+        public static bool IsResource(ObstacleRewardKind kind) => kind >= ObstacleRewardKind.Copper && kind <= ObstacleRewardKind.EnergyShard;
 
         public void Validate()
         {

@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d8b9c12e6c844b4495b6da844764eed, type: 3}
+  m_Name: advanced_works
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.RegionDefinition
+  Id: advanced_works
+  DisplayName: Crystal Refinery
+  Identity: Quartz extraction, purple chambers and cyan conveyors
+  UnlockStage: 5
+  Implemented: 1
+  Track: {fileID: 11400000, guid: 6742fd5b01da60f458b005d174543628, type: 2}
+  Encounters: {fileID: 11400000, guid: 1a981bb317c42f84dab716e54666ea54, type: 2}
+  Introduction: {fileID: 8894954309732426519, guid: 20022778c26c7454893727c6365243f3, type: 3}
+  Environment: {fileID: 1913049765831050151, guid: fcf041aaa415f214798ed69dfdc848fd, type: 3}
+  Materials:
+  - {fileID: 11400000, guid: 959aeaafad5b34442b62fd4a4c06cdca, type: 2}
+  - {fileID: 11400000, guid: c2d65f1ed8406c34ba84f143ed009537, type: 2}
+  - {fileID: 11400000, guid: bf0af9625bc5aff4fbd7ba3bb1a4f30a, type: 2}
+  - {fileID: 11400000, guid: 8d7bf001fd38c804b9722b31b3867f32, type: 2}
+  Resources: 0200000003000000
+  DrillingCosts:
+  - MaterialId: crystal_composite
+    Multiplier: 8
+  - MaterialId: quartz_ore
+    Multiplier: 8
+  - MaterialId: alloy_core
+    Multiplier: 9
+  - MaterialId: energy_alloy
+    Multiplier: 9
+  Sky: {r: 0.69, g: 0.73, b: 0.81, a: 1}

@@ -14,6 +14,9 @@ namespace DrillRunner
         [SerializeField] private DrillVisuals visuals;
         [SerializeField] private bool editorGameplayEntry = true;
         [SerializeField] private RapidRunBalance rapidRunBalance;
+        [SerializeField] private RegionCatalog regions;
+        public RegionCatalog Regions => regions;
+        public RegionDefinition SelectedRegion => regions == null ? null : regions.Find(Service.SelectedRegionId).CanPlay(Service.ActiveForm.Stage) ? regions.Find(Service.SelectedRegionId) : regions.Find(RegionIds.Yard);
         private RapidRunBalance sessionBalance;
         public RapidRunBalance Balance => sessionBalance;
         // Configuration injection for isolated historical-balance regression fixtures; normal play uses the authored asset.
@@ -110,7 +113,7 @@ namespace DrillRunner
         {
             if (Service == null || ledger == attempt) return;
             attempt = ledger; completed = null; IsBanked = false; PendingBank = false;
-            if (!Service.TryBeginAttempt(out token, out var error))
+            if (!Service.TryBeginAttempt(ledger.RegionId,out token, out var error))
             {
                 ledger.Complete(); input.Motor.Motion.EndRun(); input.enabled = false; Message = error;
             }
@@ -126,7 +129,7 @@ namespace DrillRunner
             if (!PendingBank) return IsBanked;
             if (qaAttempt)
             { PendingBank = false; IsBanked = true; Message = "QA attempt complete. Earnings were not saved."; }
-            else if (Service.TryBank(token, completed.Coins, completed.Copper, out var error))
+            else if (Service.TryBank(token, completed, out var error))
             { PendingBank = false; IsBanked = true; Message = IsSandbox ? "Temporary profile: rewards banked in memory." : "Run rewards saved."; }
             else Message = "Rewards not yet saved. Retry Save before another run. " + error;
             view.Refresh(); return IsBanked;
@@ -157,7 +160,9 @@ namespace DrillRunner
         }
         private void ApplyRunConfiguration()
         {
+            if(regions!=null){regions.Validate();run.Track.ConfigureRegion(SelectedRegion);}
             input.Motor.ApplyAttributes(Service.Attributes);
+            input.Motor.ApplyMaterialDrillingCosts(regions!=null?SelectedRegion.DrillingCosts:Array.Empty<MaterialDrillingCost>());
             if (sessionBalance == null) return;
             input.Motor.ApplyConsumption(sessionBalance.ForForm(Service.ActiveForm.FormId), sessionBalance.ChargeSeconds,
                 sessionBalance.ForForm(Service.ActiveForm.FormId).BoostDecayByDriveLevel[Service.Snapshot.Level(UpgradeCategory.DrivePower)]);
@@ -168,6 +173,12 @@ namespace DrillRunner
             if (lastUiStartFrame == Time.frameCount) return false;
             if (!StartRun()) return false;
             lastUiStartFrame = Time.frameCount; return true;
+        }
+        public bool SelectRegion(string id)
+        {
+            if(regions==null||!CanPurchase)return false;
+            try {var ok=Service.TrySelectRegion(regions.Find(id),CanPurchase,out var error);Message=ok?"Region selected: "+SelectedRegion.DisplayName:error;view.Refresh();return ok;}
+            catch(ArgumentException e){Message=e.Message;return false;}
         }
         public bool Purchase(UpgradeCategory category)
         {
@@ -201,6 +212,7 @@ namespace DrillRunner
             if (PendingBank || IsEvolving || (state != RunState.Ready && state != RunState.RunEnded) || stage < 1 || stage > 8 ||
                 coins < 0 || copper < 0 || iron < 0 || quartz < 0 || alloyCore < 0 || energyShard < 0) return;
             var copy = Service.Snapshot; copy.FormId = ProgressionConfig.FormIds[stage - 1]; copy.FormSchema = copy.EvolutionSchema = 1;
+            copy.SelectRegion(RegionIds.Yard);
             copy.Coins = coins; copy.Copper = copper; copy.Iron = iron; copy.Quartz = quartz; copy.AlloyCore = alloyCore; copy.EnergyShard = energyShard;
             copy.PowerLevel = stage > 1 || maxCurrent ? sessionConfig.Power.MaximumLevel : 0;
             copy.EnergyLevel = stage > 1 || maxCurrent ? sessionConfig.Energy.MaximumLevel : 0;

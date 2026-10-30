@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b60dce250862a843adefa2670c041a9, type: 3}
+  m_Name: RefineryEncounters
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.EncounterLibrary
+  Catalog: {fileID: 11400000, guid: 6742fd5b01da60f458b005d174543628, type: 2}
+  ResourceKind: 3
+  Patterns:
+  - {fileID: 11400000, guid: 73ed105948283f545ad4f170ffcc97a9, type: 2}
+  - {fileID: 11400000, guid: 4abf2d320539e9a45a11af5d4f072562, type: 2}
+  - {fileID: 11400000, guid: 24be27d52c9b2074c8b8db8ddfe05fe5, type: 2}
+  - {fileID: 11400000, guid: adf79b3e18ea84c47bc5b97b0acca184, type: 2}
+  - {fileID: 11400000, guid: e43c5f695b018954f9ea3eb8e42a857b, type: 2}
+  - {fileID: 11400000, guid: 0bc03f882435b0542b33ad6ad3198658, type: 2}
+  - {fileID: 11400000, guid: 5fd274fb629cad94683e29e163d71c2d, type: 2}
+  - {fileID: 11400000, guid: b5f4497032ae29b4b8bdac83ad5d8a38, type: 2}
+  - {fileID: 11400000, guid: 0d42b180513ea054bb3bb6ba785f5c7d, type: 2}
+  - {fileID: 11400000, guid: 525a9edf91ccf7f42be765fc502ef737, type: 2}
+  - {fileID: 11400000, guid: 867745fc04bbd8c45b03afc64bc0ddab, type: 2}
+  - {fileID: 11400000, guid: eb1bda04829186040a6d913be6b2c4ab, type: 2}
+  - {fileID: 11400000, guid: a4e6deac5825b2e46b9863c89c75535e, type: 2}
+  - {fileID: 11400000, guid: 0ddade12c99a1294e83389bfae3de620, type: 2}
+  IntroductionSections: 1
+  OpeningBufferSections: 0
+  FirstSelectionCopper: 1
+  OpeningCopperBySelection: 1
+  CalmFirstEncounter: 1
+  ReliefAfterHighPressure: 1
+  ArrangementMemory: 2
+  EmptyRecoverySpacing: 4
+  Revision: 0
+  EarlySections: 3
+  RicherFromSection: 8
+  MaximumCopperGap: 3
+  MaximumRecoveryGap: 6
+  MaximumConsecutivePressure: 1
+  ReactionSeconds: 0.35
+  SteeringTolerance: 0.04
+  StartingOreEnergyBudget: 500

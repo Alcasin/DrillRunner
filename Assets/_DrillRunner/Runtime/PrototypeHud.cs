@@ -22,7 +22,7 @@ namespace DrillRunner
         private int shownEnergy = -1;
         private float shownPower = -1, shownCapacity = -1;
         private int displayedDistance = -1;
-        private long displayedCoins = -1, displayedCopper = -1;
+        private long displayedCoins = -1, displayedCopper = -1, displayedIron = -1, displayedQuartz = -1, displayedAlloy = -1, displayedShard = -1;
         private RunRewards displayedRun;
         private RunState previousState = (RunState)(-1);
         private DrillObstacle previousTarget;
@@ -116,12 +116,15 @@ namespace DrillRunner
             var run = runProgress != null ? runProgress.Rewards : null;
             if (run == null || rewardText == null || summaryText == null) return;
             var distance = (int)System.Math.Min(int.MaxValue, System.Math.Floor(run.Distance));
-            if (displayedRun != run || displayedDistance != distance || displayedCoins != run.Coins || displayedCopper != run.Copper)
+            if (displayedRun != run || displayedDistance != distance || displayedCoins != run.Coins || displayedCopper != run.Copper || displayedIron != run.Iron || displayedQuartz != run.Quartz || displayedAlloy != run.AlloyCore || displayedShard != run.EnergyShard)
             {
-                displayedRun = run; displayedDistance = distance; displayedCoins = run.Coins; displayedCopper = run.Copper;
-                rewardText.text = distance + " m    COINS " + run.Coins + "    COPPER " + run.Copper;
-                summaryText.text = premiumSummary ? "<size=18>RUN COMPLETE</size>\n<size=40>" + distance + " m</size>\n<size=22>" + run.Coins + " Coins  ·  " + run.Copper + " Copper</size>" :
-                    "RUN COMPLETE\n" + distance + " m  |  " + run.Coins + " Coins  |  " + run.Copper + " Copper";
+                displayedRun = run; displayedDistance = distance; displayedCoins = run.Coins; displayedCopper = run.Copper; displayedIron = run.Iron;
+                displayedQuartz = run.Quartz; displayedAlloy = run.AlloyCore; displayedShard = run.EnergyShard;
+                var resource = run.ResourceText();
+                rewardText.fontSize = run.RegionId == RegionIds.Advanced ? 17 : 22;
+                rewardText.text = distance + " m    COINS " + run.Coins + "    " + resource.ToUpperInvariant();
+                summaryText.text = premiumSummary ? "<size=18>RUN COMPLETE</size>\n<size=40>" + distance + " m</size>\n<size=22>" + run.Coins + " Coins</size>\n<size=19>" + resource + "</size>" :
+                    "RUN COMPLETE\n" + distance + " m  |  " + run.Coins + " Coins  |  " + resource;
             }
             summaryText.gameObject.SetActive(run.IsCompleted);
         }

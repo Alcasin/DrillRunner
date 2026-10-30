@@ -36,7 +36,7 @@ namespace DrillRunner
                     b.min.z < 4 || b.max.z > length - 4 || Mathf.Abs(b.center.x) > limit ||
                     (p.Hardness > initialPower && (b.min.z < 8 || b.max.z > length - 8)))
                 { reason = "Obstacle dimensions, placement, or boundary clearance are unsafe."; return false; }
-                if (p.Reward == ObstacleRewardKind.Copper && p.Hardness > initialPower)
+                if (MaterialDefinition.IsResource(p.Reward) && p.Hardness > initialPower)
                 { reason = "Copper must be drillable at initial power."; return false; }
                 for (var j = 0; j < i; j++)
                     if (b.Intersects(placements[j].Bounds))
@@ -56,7 +56,7 @@ namespace DrillRunner
             }
             if (!route) { reason = "No complete-footprint constant-X route exists."; return false; }
             foreach (var p in placements)
-                if (p.Reward == ObstacleRewardKind.Copper && !SafeAt(p.Bounds.center.x, halfFootprint, initialPower, placements))
+                if (MaterialDefinition.IsResource(p.Reward) && !SafeAt(p.Bounds.center.x, halfFootprint, initialPower, placements))
                 { reason = "Copper has no certified approach/exit route."; return false; }
             return true;
         }

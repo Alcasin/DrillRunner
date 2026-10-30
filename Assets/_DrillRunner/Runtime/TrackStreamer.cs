@@ -24,6 +24,24 @@ namespace DrillRunner
         private float runLength, runAhead, runBehind;
         private TrackSection runFallback;
         private TrackSection[] variants;
+        private RegionDefinition regional;
+        private TrackCatalog yardCatalog;
+        private EncounterLibrary yardEncounters;
+        private Color yardSky,yardFog;
+        public string RegionId => regional != null ? regional.Id : RegionIds.Yard;
+        public void ConfigureRegion(RegionDefinition definition)
+        {
+            if(motor.Motion!=null && motor.Motion.State!=RunState.Ready && motor.Motion.State!=RunState.RunEnded)throw new InvalidOperationException("Regions change only between attempts.");
+            if(definition==null || definition.Id==RegionIds.Yard)
+            {
+                if(regional!=null){catalog=yardCatalog;encounters=yardEncounters;regional=null;if(Camera.main!=null)Camera.main.backgroundColor=yardSky;RenderSettings.fogColor=yardFog;}
+                return;
+            }
+            definition.Validate();if(!definition.Implemented)throw new ArgumentException("Deferred region cannot launch.");
+            if(regional==null){yardCatalog=catalog;yardEncounters=encounters;yardSky=Camera.main!=null?Camera.main.backgroundColor:Color.gray;yardFog=RenderSettings.fogColor;}
+            regional=definition;catalog=definition.Track;encounters=definition.Encounters;
+            if(Camera.main!=null)Camera.main.backgroundColor=definition.Sky;RenderSettings.fogColor=definition.Sky;
+        }
         public TrackCatalog Catalog { get => catalog; set => catalog = value; }
         public EncounterLibrary Encounters { get => encounters; set => encounters = value; }
         public EncounterSequence EncounterPlan => encounterSequence;
@@ -54,10 +72,10 @@ namespace DrillRunner
                 throw new ArgumentException("Track streaming needs compatible motor/catalog, starters, and camera-safe coverage.");
             var plan = new SectionSequence(seed, catalog, motor.Settings.FootprintHalfWidth);
             var encounterPlan = encounters != null && encounters.Catalog == catalog ? new EncounterSequence(seed, encounters, EncounterEnvelope.From(motor)) : null;
-            var introductionCount = encounterPlan != null ? encounters.IntroductionSections : starters.Length;
+            var introductionCount = regional != null ? 1 : encounterPlan != null ? encounters.IntroductionSections : starters.Length;
             if (introductionCount < 1 || introductionCount > starters.Length || (encounterPlan != null && (encounters.OpeningBufferSections < 0 || encounters.OpeningBufferSections > 4)))
                 throw new ArgumentException("Introduction and buffer must fit the authored startup configuration.");
-            foreach (var template in starterTemplates)
+            foreach (var template in regional != null ? new[]{regional.Introduction} : starterTemplates)
                 if (!SectionSequence.IsSafe(template, catalog, motor.Settings.FootprintHalfWidth))
                     throw new ArgumentException("An authored starter template failed route validation.");
             Cleanup();
@@ -69,7 +87,12 @@ namespace DrillRunner
                 generatedRoot = new GameObject("Generated Sections").transform;
                 generatedRoot.SetParent(transform, false);
             }
-            for (var i = 0; i < starters.Length; i++)
+            if(regional!=null)
+            {
+                foreach(var section in starters){Unregister(section);section.gameObject.SetActive(false);}
+                Spawn(regional.Introduction,0);cursor=runLength;
+            }
+            else for (var i = 0; i < starters.Length; i++)
             {
                 var section = starters[i];
                 if (section == null || Mathf.Abs(section.StartZ - i * runLength) > 0.001f ||

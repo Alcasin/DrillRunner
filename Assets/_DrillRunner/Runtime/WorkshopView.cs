@@ -89,7 +89,13 @@ namespace DrillRunner
             var profile = controller.Service.Snapshot; var config = controller.Service.ActiveForm;
             balance.text = "COINS  " + profile.Coins + "       COPPER  " + profile.Copper;
             if (coinBalance != null) coinBalance.text = profile.Coins.ToString();
-            if (copperBalance != null) copperBalance.text = profile.Copper.ToString();
+            if (copperBalance != null)
+            {
+                var region=controller.Regions!=null?controller.SelectedRegion.Id:RegionIds.Yard;
+                copperBalance.fontSize=region==RegionIds.Advanced?22:28;
+                copperBalance.text=region==RegionIds.Quarry?profile.Iron.ToString():region==RegionIds.Advanced?profile.Quartz+" / "+profile.AlloyCore:region==RegionIds.Energy?profile.EnergyShard.ToString():profile.Copper.ToString();
+                var caption=copperBalance.transform.parent.Find("Caption");if(caption!=null)caption.GetComponent<Text>().text=region==RegionIds.Quarry?"IRON":region==RegionIds.Advanced?"QUARTZ / ALLOY CORE":region==RegionIds.Energy?"ENERGY SHARD":"COPPER";
+            }
             status.text = (controller.IsSandbox ? "DEVELOPMENT SANDBOX\n" : "") + controller.Message;
             banking.text = controller.Run.Rewards != null && controller.Run.Rewards.IsCompleted ? controller.Message : "";
             retrySave.gameObject.SetActive(controller.PendingBank);
@@ -106,10 +112,15 @@ namespace DrillRunner
                 {
                     if (resource == EvolutionResource.Copper) continue;
                     var relevant = config.NextForm != null && Array.Exists(config.RequiredResources, c => c.Resource == resource);
-                    if (profile.Resource(resource) > 0 || relevant) resources += (resources.Length == 0 ? "" : "    ·    ") + ResourceCost.Name(resource) + " " + profile.Resource(resource);
+                    if (relevant) resources += (resources.Length == 0 ? "" : "    ·    ") + ResourceCost.Name(resource) + " " + profile.Resource(resource);
                 }
                 evolutionResources.text = resources;
-                if (formPreview != null) formPreview.rectTransform.sizeDelta = new Vector2(formPreview.rectTransform.sizeDelta.x, resources.Length > 0 ? 82 : 116);
+                if (formPreview != null)
+                {
+                    float height=controller.Regions!=null?(resources.Length>0?48:60):resources.Length>0?82:116;
+                    float width=controller.Regions!=null&&config.PreviewImage!=null?height*config.PreviewImage.width/config.PreviewImage.height:formPreview.rectTransform.sizeDelta.x;
+                    formPreview.rectTransform.sizeDelta=new Vector2(width,height);
+                }
             }
             if (formPreview != null) formPreview.texture = config.PreviewImage;
             if (requirements != null) { requirements.fontSize = config.NextForm != null && config.RequiredResources.Length > 1 ? 14 : 16; requirements.text = controller.Evolution.Description; }

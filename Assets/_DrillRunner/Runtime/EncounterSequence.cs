@@ -60,7 +60,7 @@ namespace DrillRunner
                     definition.MinimumOrdinal < 0 || definition.EarlyWeight < 0 || definition.Weight < 0 || definition.LateWeight < 0 ||
                     definition.EarlyWeight > 10000 || definition.Weight > 10000 || definition.LateWeight > 10000)
                 { RejectedPatterns++; Rejection = reason.Length > 0 ? reason : "Duplicate section or invalid weight."; continue; }
-                var copper = false; foreach (var p in definition.Section.ReadPlacements()) copper |= p.Reward == ObstacleRewardKind.Copper;
+                var copper = false; foreach (var p in definition.Section.ReadPlacements()) copper |= p.Reward == library.ResourceKind;
                 accepted.Add(new Entry { Definition = definition, Section = definition.Section, Category = definition.Category,
                     Pressure = definition.Pressure, Minimum = definition.MinimumOrdinal, Early = definition.EarlyWeight,
                     Weight = definition.Weight, Late = definition.LateWeight, Copper = copper, Arrangement = definition.Arrangement, Empty = definition.Section.Obstacles.Length == 0 });

@@ -24,20 +24,38 @@ namespace DrillRunner
         private readonly HashSet<long> claimed = new HashSet<long>();
         private double progress;
         public int Seed { get; }
+        public string RegionId { get; }
         public double Distance => progress;
         public long DistanceCoins { get; private set; }
         public long ObstacleCoins { get; private set; }
-        public long Copper { get; private set; }
+        private readonly long[] resources = new long[5];
+        public long Copper => resources[0];
+        public long Iron => resources[1];
+        public long Quartz => resources[2];
+        public long AlloyCore => resources[3];
+        public long EnergyShard => resources[4];
+        public long Resource(ObstacleRewardKind kind) => MaterialDefinition.IsResource(kind) ? resources[(int)kind - 1] : 0;
+        public string ResourceText()
+        {
+            var text = "";
+            for (var i = 0; i < resources.Length; i++)
+            {
+                bool contextual = RegionId == RegionIds.Yard ? i == 0 : RegionId == RegionIds.Quarry ? i == 1 : RegionId == RegionIds.Advanced ? i == 2 || i == 3 : i == 4;
+                if (contextual || resources[i] > 0) text += (text.Length == 0 ? "" : " · ") + resources[i] + " " + ResourceCost.Name((EvolutionResource)i);
+            }
+            return text;
+        }
         public long Coins => DistanceCoins + ObstacleCoins;
         public bool IsActive { get; private set; }
         public bool IsCompleted { get; private set; }
 
-        public RunRewards(int seed, double startZ, RewardSettings settings)
+        public RunRewards(int seed, double startZ, RewardSettings settings, string regionId = RegionIds.Yard)
         {
             if (settings == null) throw new ArgumentNullException(nameof(settings));
             settings.Validate();
             if (double.IsNaN(startZ) || double.IsInfinity(startZ)) throw new ArgumentOutOfRangeException(nameof(startZ));
-            Seed = seed; origin = startZ; interval = settings.DistancePerPayout; payout = settings.CoinsPerPayout; obstacleMultiplier = settings.ObstacleCoinMultiplier;
+            if (!RegionIds.Implemented(regionId)) throw new ArgumentException("Unimplemented run region.");
+            RegionId = regionId; Seed = seed; origin = startZ; interval = settings.DistancePerPayout; payout = settings.CoinsPerPayout; obstacleMultiplier = settings.ObstacleCoinMultiplier;
         }
 
         public void Start() { if (!IsCompleted) IsActive = true; }
@@ -59,9 +77,10 @@ namespace DrillRunner
             if (encounterId <= 0 || amount < 0 || !Enum.IsDefined(typeof(ObstacleRewardKind), kind)) throw new ArgumentException("Invalid obstacle reward.");
             if (!IsActive || IsCompleted || !completelyDestroyed || claimed.Contains(encounterId)) return false;
             var normalCoins = checked((long)amount * obstacleMultiplier);
-            var total = kind == ObstacleRewardKind.Copper ? checked(Copper + amount) : checked(Coins + normalCoins);
+            var special = MaterialDefinition.IsResource(kind);
+            var total = special ? checked(Resource(kind) + amount) : checked(Coins + normalCoins);
             claimed.Add(encounterId);
-            if (kind == ObstacleRewardKind.Copper) Copper = total; else ObstacleCoins += normalCoins;
+            if (special) resources[(int)kind - 1] = total; else ObstacleCoins += normalCoins;
             return true;
         }
 

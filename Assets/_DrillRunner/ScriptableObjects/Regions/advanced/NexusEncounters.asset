@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b60dce250862a843adefa2670c041a9, type: 3}
+  m_Name: NexusEncounters
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.EncounterLibrary
+  Catalog: {fileID: 11400000, guid: a79458105a9f4944bbd4cad9f08682f9, type: 2}
+  ResourceKind: 5
+  Patterns:
+  - {fileID: 11400000, guid: ab34f3fad4c703f4686fcd077f955c0e, type: 2}
+  - {fileID: 11400000, guid: 09f03f0c92c1ac54385afdad64f60333, type: 2}
+  - {fileID: 11400000, guid: d50355a9af560964789defa2db97a647, type: 2}
+  - {fileID: 11400000, guid: dec6411f062e2d7488ebe85cdc89464e, type: 2}
+  - {fileID: 11400000, guid: 1e0b537443f46e24da3de396db0eaa61, type: 2}
+  - {fileID: 11400000, guid: 5b4e3c2a179a9cf418728aedf7df85ad, type: 2}
+  - {fileID: 11400000, guid: d70d3c83e37c62e43967622cfdd514c7, type: 2}
+  - {fileID: 11400000, guid: 35255c84d22379f4da98ccd6f3301831, type: 2}
+  - {fileID: 11400000, guid: b7a5efa4c81387e41ac924bc181b62c1, type: 2}
+  - {fileID: 11400000, guid: a44fdad18937b274e8e36f68b165be53, type: 2}
+  - {fileID: 11400000, guid: 709b46b7e2193504db6e640d5b578b33, type: 2}
+  - {fileID: 11400000, guid: 7379330da955b0641bdb4ec4271504d5, type: 2}
+  - {fileID: 11400000, guid: ec29de0e76a664a4abec9e91b518bcff, type: 2}
+  - {fileID: 11400000, guid: ab2bcd0fa47ac494c8960832e14c6489, type: 2}
+  IntroductionSections: 1
+  OpeningBufferSections: 0
+  FirstSelectionCopper: 1
+  OpeningCopperBySelection: 1
+  CalmFirstEncounter: 1
+  ReliefAfterHighPressure: 1
+  ArrangementMemory: 2
+  EmptyRecoverySpacing: 4
+  Revision: 0
+  EarlySections: 3
+  RicherFromSection: 8
+  MaximumCopperGap: 3
+  MaximumRecoveryGap: 6
+  MaximumConsecutivePressure: 1
+  ReactionSeconds: 0.35
+  SteeringTolerance: 0.04
+  StartingOreEnergyBudget: 500

@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1320edd5b590d141b1ac28c02bed647, type: 3}
+  m_Name: NexusTrack
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.TrackCatalog
+  Width: 6
+  SectionLength: 40
+  InitialPower: 125
+  Fallback: {fileID: 1431818287256815852, guid: 454297f39f51a664380881374202fcf7, type: 3}
+  Variants:
+  - {fileID: 5550683797857616027, guid: 10a65cf64323d684ea6b3eab680bbdb9, type: 3}
+  - {fileID: 6191898059342347449, guid: f86d45d5ca5c21a46b98ab421eb98182, type: 3}
+  - {fileID: 4066233547958610921, guid: f0f80b38d8fdae64ba173cdb0e396624, type: 3}
+  - {fileID: 6105717309883276399, guid: 5d3969a4d0a94694da309af75e55557c, type: 3}
+  - {fileID: 4909588926100284027, guid: e260c4a333a59db40bf6e3ae56faa94b, type: 3}
+  - {fileID: 2199078760369381019, guid: 12632c6c15f95d04693c91341f2ee9d3, type: 3}
+  - {fileID: 7762658204593912475, guid: da0051c8ba148cf419b9d3b84abc88e7, type: 3}
+  - {fileID: 5476778577297816, guid: 16799e23d7917f046bbc2521dfe4e40f, type: 3}
+  - {fileID: 1671104865075584617, guid: 6d458f209c9781b4faaf7717ed2b02d6, type: 3}
+  - {fileID: 8720484344368024075, guid: 8e6c9aa1a9cc5034aabe443092392c4b, type: 3}
+  - {fileID: 2022573791981921157, guid: 1ca644b190d6a944ea1e1d14100f4e8c, type: 3}
+  - {fileID: 235044033644493209, guid: fb23ef1471d11e84f99ecdf657face1a, type: 3}
+  - {fileID: 6467582866800045438, guid: 62cd3c8399faf0b4ca635a1cd08a938e, type: 3}
+  - {fileID: 4938320766857476671, guid: ff78d73a4ef1e9540a251fd3a12184ed, type: 3}
+  ResourceInterval: 3
+  ResourceKind: 5

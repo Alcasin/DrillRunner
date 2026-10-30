@@ -24,7 +24,8 @@ namespace DrillRunner
         private float spin, time, launchResponse;
         private RunState previous = (RunState)(-1);
         private bool wasOpen;
-        private long previousCopper, previousCoins;
+        private long previousCoins;
+        private readonly long[] previousResources = new long[5];
         private bool focused = true, paused;
         public RunState State { get; private set; }
         public float Charge { get; private set; }
@@ -47,7 +48,7 @@ namespace DrillRunner
         private void Unregistered(DrillObstacle obstacle) => broken.Remove(obstacle);
         private void ResetFeedback()
         {
-            broken.Clear(); previousCopper = previousCoins = 0; previous = (RunState)(-1); launchResponse = 0; spin = 0;
+            broken.Clear(); previousCoins = 0; System.Array.Clear(previousResources,0,previousResources.Length); previous = (RunState)(-1); launchResponse = 0; spin = 0;
             sounds.StopAll(); effects.StopAll(); hud.ClearToast(); RestorePose(); boundVisual = null;
         }
         private void WorkshopCue(WorkshopFeedback cue)
@@ -61,13 +62,19 @@ namespace DrillRunner
         private void OnBroken(DrillObstacle obstacle)
         {
             if (!focused || paused || flow.IsOpen || run.Rewards == null || run.Rewards.IsCompleted || !run.Rewards.IsActive || obstacle.Durability == null || !obstacle.Durability.IsDestroyed || !broken.Add(obstacle)) return;
-            var copper = obstacle.Definition.RewardKind == ObstacleRewardKind.Copper;
-            var confirmedCopper = copper && run.Rewards.Copper > previousCopper;
-            effects.Burst(obstacle.Definition.MaterialId, obstacle.WorldBounds, confirmedCopper); sounds.Play(copper ? FeedbackCue.CopperBreak : FeedbackCue.Break); DestructionCues++;
-            if (confirmedCopper)
-            { hud.Reward(run.Rewards.Copper - previousCopper, true); sounds.Play(FeedbackCue.CopperReward); }
-            else if (!copper && run.Rewards.ObstacleCoins > previousCoins) hud.Reward(run.Rewards.ObstacleCoins - previousCoins, false);
-            previousCopper = run.Rewards.Copper; previousCoins = run.Rewards.ObstacleCoins;
+            var kind = obstacle.Definition.RewardKind;
+            var special = MaterialDefinition.IsResource(kind);
+            var amount = special ? run.Rewards.Resource(kind) - previousResources[(int)kind - 1] : 0;
+            effects.Burst(obstacle.Definition.MaterialId, obstacle.WorldBounds, amount > 0); sounds.Play(special ? FeedbackCue.CopperBreak : FeedbackCue.Break); DestructionCues++;
+            if (amount > 0)
+            {
+                if (kind == ObstacleRewardKind.Copper) hud.Reward(amount,true);
+                else hud.ResourceReward(amount,ResourceCost.Name((EvolutionResource)((int)kind - 1)).ToUpperInvariant());
+                sounds.Play(FeedbackCue.CopperReward);
+            }
+            else if (!special && run.Rewards.ObstacleCoins > previousCoins) hud.Reward(run.Rewards.ObstacleCoins - previousCoins, false);
+            for (var i = 0; i < 5; i++) previousResources[i] = run.Rewards.Resource((ObstacleRewardKind)(i + 1));
+            previousCoins = run.Rewards.ObstacleCoins;
         }
         public void Sample()
         {
@@ -89,7 +96,7 @@ namespace DrillRunner
                 previous = State; wasOpen = flow.IsOpen;
             }
             var loop = flow.IsEvolving ? (int)FeedbackCue.Charge : !active ? -1 : State == RunState.Charging ? (int)FeedbackCue.Charge : drilling ? (int)FeedbackCue.Drill : -1;
-            var materialPitch = target == null || target.Definition == null ? 1 : target.Definition.MaterialId == "wood" ? 1.1f : target.Definition.MaterialId == "brick" ? 0.95f : target.Definition.MaterialId == "stone" ? 0.8f : 1.2f;
+            var materialPitch = target == null || target.Definition == null ? 1 : target.Definition.MaterialId == "crystal_composite" ? 0.92f : target.Definition.MaterialId == "energy_alloy" ? 0.72f : target.Definition.MaterialId == "quartz_ore" ? 1.27f : target.Definition.MaterialId == "alloy_core" ? 0.83f : target.Definition.MaterialId == "energy_shard" ? 1.35f : target.Definition.MaterialId == "wood" ? 1.1f : target.Definition.MaterialId == "brick" ? 0.95f : target.Definition.MaterialId == "stone" || target.Definition.MaterialId=="granite" ? 0.8f : target.Definition.MaterialId=="reinforced"?0.68f:target.Definition.MaterialId=="plating"?0.9f:1.2f;
             sounds.SetLoop(loop, flow.IsEvolving ? 1.35f : State == RunState.Charging ? 0.75f + Charge * 0.65f : materialPitch);
         }
         private void LateUpdate()

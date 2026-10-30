@@ -65,7 +65,7 @@ namespace DrillRunner
             if (!useFixedSeed && Rewards != null && seed == Rewards.Seed) seed = unchecked(seed + 1);
             try
             {
-                Rewards = new RunRewards(seed, motor.StartPosition.z, rewards);
+                Rewards = new RunRewards(seed, motor.StartPosition.z, rewards,track.RegionId);
                 track.Begin(seed);
                 foreach (var obstacle in motor.RegisteredObstacles) Bind(obstacle);
                 if (motor.Motion.State == RunState.RunEnded) Rewards.Complete();

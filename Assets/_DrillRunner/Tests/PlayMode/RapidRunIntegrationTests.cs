@@ -69,7 +69,7 @@ namespace DrillRunner.Tests.PlayMode
                 if(stage==1)Assert.That(expected,Is.EqualTo(route==0?4.34:route==1?15:10.1).Within(0.01));
                 rows.Add(string.Join(",",new object[]{stage,route==0?"Wood":route==1?"BrickOre":"WoodThenOre",motor.Diagnostics.DrillingSeconds,motor.Diagnostics.DrillingEnergy,flow.Run.Rewards.ObstacleCoins,flow.Run.Rewards.Copper}
                     .Select(v=>v is IFormattable f?f.ToString(null,System.Globalization.CultureInfo.InvariantCulture):v.ToString())));
-                File.WriteAllLines("Logs/M8R4-RouteCosts.csv",rows);ForceFixtureEnd();yield return null;
+                File.WriteAllLines("Logs/M9A-M8R4-RouteCosts.csv",rows);ForceFixtureEnd();yield return null;
             }
         }
         [UnityTest] public IEnumerator DepletionResultsAndRapidRetryBankOnceAndKeepTheSandboxIsolated()
@@ -123,8 +123,8 @@ namespace DrillRunner.Tests.PlayMode
                     Assert.That(motor.Diagnostics.EndedByEnergy,Is.True);Assert.That(flow.IsBanked,Is.True);Assert.That(motor.Diagnostics.Seconds,Is.LessThan(46));
                     yield return null;yield return Capture(label+"-Results");
                     rows.Add(string.Join(",",new object[]{profile[0],profile[1],motor.Diagnostics.Seconds,flow.Run.Rewards.Distance,flow.Run.Rewards.Coins,flow.Run.Rewards.Copper,flow.IsBanked}
-                        .Select(v=>v is IFormattable f?f.ToString(null,System.Globalization.CultureInfo.InvariantCulture):v.ToString())));File.WriteAllLines("Logs/M8R4-NaturalEpisodes.csv",rows);
-                    counters.Add(string.Join(",",profile[0],profile[1],samples,totalMain/Math.Max(1,samples),peakMain,peakDraws,peakGc,peakSections,peakTargets));File.WriteAllLines("Logs/M8R4-Profiler.csv",counters);
+                        .Select(v=>v is IFormattable f?f.ToString(null,System.Globalization.CultureInfo.InvariantCulture):v.ToString())));File.WriteAllLines("Logs/M9A-M8R4-NaturalEpisodes.csv",rows);
+                    counters.Add(string.Join(",",profile[0],profile[1],samples,totalMain/Math.Max(1,samples),peakMain,peakDraws,peakGc,peakSections,peakTargets));File.WriteAllLines("Logs/M9A-M8R4-Profiler.csv",counters);
                     Assert.That(peakSections,Is.LessThanOrEqualTo(10));Assert.That(peakTargets,Is.LessThanOrEqualTo(40));
                     Assert.That(hud.SummaryText.gameObject.activeSelf,Is.True);Assert.That(Object.FindFirstObjectByType<PresentationAudio>().LoopCue,Is.EqualTo(-1));
                     flow.OpenWorkshop();if(profile[1]<5)Assert.That(flow.Purchase(UpgradeCategory.EnergyCapacity),Is.True);yield return Capture(label+"-Workshop");
@@ -163,7 +163,7 @@ namespace DrillRunner.Tests.PlayMode
             {
                 camera.targetTexture=texture;camera.aspect=9f/16;canvas.renderMode=RenderMode.ScreenSpaceCamera;canvas.worldCamera=camera;canvas.planeDistance=0.5f;
                 yield return new WaitForSecondsRealtime(0.08f);yield return null;yield return null;
-                RenderTexture.active=texture;image.ReadPixels(new Rect(0,0,540,960),0,0);image.Apply();File.WriteAllBytes("Logs/M8R4-"+name+".png",image.EncodeToPNG());
+                RenderTexture.active=texture;image.ReadPixels(new Rect(0,0,540,960),0,0);image.Apply();File.WriteAllBytes("Logs/M9A-M8R4-"+name+".png",image.EncodeToPNG());
             }
             finally{canvas.renderMode=oldMode;canvas.worldCamera=oldCamera;canvas.planeDistance=oldPlane;camera.targetTexture=oldTarget;camera.ResetAspect();RenderTexture.active=oldActive;texture.Release();Object.Destroy(texture);Object.Destroy(image);}
         }

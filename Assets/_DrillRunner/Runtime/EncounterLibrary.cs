@@ -7,6 +7,7 @@ namespace DrillRunner
     {
         [Tooltip("Explicit legacy catalog overrides keep their own content unless paired with a matching library.")]
         public TrackCatalog Catalog;
+        public ObstacleRewardKind ResourceKind = ObstacleRewardKind.Copper;
         public EncounterDefinition[] Patterns;
         [Min(1)] public int IntroductionSections = 1;
         [Min(0)] public int OpeningBufferSections;

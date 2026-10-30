@@ -13,6 +13,7 @@ namespace DrillRunner
         public TrackSection Fallback;
         public TrackSection[] Variants = Array.Empty<TrackSection>();
         [Min(0)] public int ResourceInterval = 3;
+        public ObstacleRewardKind ResourceKind = ObstacleRewardKind.Copper;
     }
 
     /// <summary>Private xorshift state; layout never consumes Unity's global random state.</summary>
@@ -37,7 +38,7 @@ namespace DrillRunner
                 valid[i] = IsSafe(catalog.Variants[i], catalog, halfFootprint);
                 if (valid[i])
                     foreach (var p in catalog.Variants[i].ReadPlacements())
-                        if (p.Reward == ObstacleRewardKind.Copper) { resources.Add(i); break; }
+                        if (p.Reward == catalog.ResourceKind) { resources.Add(i); break; }
             }
             copper = resources.ToArray(); resourceInterval = catalog.ResourceInterval;
             if (resourceInterval > 0 && copper.Length == 0) throw new ArgumentException("Resource cadence needs a safe, reachable Copper section.");

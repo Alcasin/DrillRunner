@@ -40,7 +40,7 @@ namespace DrillRunner.Editor
                 flow.UseTemporaryStage(temporaryStage, temporaryCoins, temporaryCopper, temporaryIron, temporaryQuartz, temporaryAlloy, temporaryShards, maximum);
             var stats = flow.Service.Attributes;
             EditorGUILayout.LabelField("Power / Energy / Cruise / speed cap", stats.Power + " / " + stats.Energy + " / " + stats.Cruise + " / " + stats.SpeedCeiling);
-            EditorGUILayout.LabelField("Region eligibility (content deferred to M9)", flow.Service.ActiveForm.EligibleRegionCount.ToString());
+            EditorGUILayout.LabelField("Playable regions unlocked", flow.Service.ActiveForm.EligibleRegionCount.ToString());
             using (new EditorGUI.DisabledScope(flow.Service.Writable || !flow.IsOpen))
                 if (GUILayout.Button("Recover previous valid save revision") &&
                     EditorUtility.DisplayDialog("Recover local progress", "Restore the previous valid backup? The rejected primary will be archived unchanged. This may lose only the latest transaction. Unsupported newer saves must be opened with a compatible game; recovery deliberately restores the older schema.", "Archive and recover", "Cancel")) flow.RecoverBackup();

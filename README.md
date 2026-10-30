@@ -1,8 +1,10 @@
 # DrillRunner
 
-A portrait mobile 3D evolution runner built with **Unity 6000.3.8f1 (6.3 LTS)** and **Universal Render Pipeline 17.3.0**. The approved game has eight drill forms and four regions; the first vertical slice will cover one region and Form 1 to Form 2.
+A portrait 3D evolution runner built with **Unity 6000.3.8f1 (6.3 LTS)** and **Universal Render Pipeline 17.3.0**. The PC Editor game has eight drill forms and four playable regions. Mobile adaptation remains deferred.
 
-**M8-R turns the eight-form progression into a rapid arcade loop:** short Energy-limited attempts, prompt Results/Retry, useful purchases, and stronger launch carry. Normal Workshop Yard play reaches EVO 3 using Copper; later resources await M9. Existing models, Power/Capacity tables, prices, hardness, steering, and save data remain. Stop here for M8-R review; M9 and Android/release work are not started.
+**M9-B completes the regional resource journey:** Workshop Yard → Quarry → Crystal Refinery → Energy Nexus, unlocking at EVO 1/3/5/7. Earn Copper, Iron, Quartz, Alloy Core and Energy Shards through complete destruction, buy all current upgrades, and evolve through Quantum Drill. The rapid Energy-limited loop, existing form stats/prices, early-region economy and save protections remain. See [M9-B validation](Docs/M9-B-Validation.md). Stop after M9-B review; M10 and Android/release work are not included.
+
+Earlier milestone sections retain implementation history. Current balance uses the authored M8-R4 progression/operating assets plus the M9-A/M9-B regional tables; the linked validation reports distinguish historical measurements from current configuration.
 
 ## Open and inspect
 
@@ -123,7 +125,7 @@ The run uses a private xorshift sequence, independent of Unity's global random s
 
 | Reward source | Per-run payout |
 | --- | --- |
-| Forward distance | 9 Coins per completed 5 units |
+| Forward distance | 6 Coins per completed 5 units |
 | Wood destruction | 25 Coins |
 | Brick destruction | 50 Coins |
 | Stone destruction, when power permits | 75 Coins |
@@ -228,7 +230,7 @@ The original catalog and 11 legacy sections remain intact. An explicit runtime a
 
 **Tools > DrillRunner > Setup M8 Full Evolution** has integrated the eight-form chain without manual wiring. The original Pocket and Workshop models/tables remain. Six visual-only prefabs add Industrial Drill, Heavy Borer, Hydraulic Drill, Crystal Core Drill, Fusion Drill, and Quantum Drill. Each has five Power, Energy, and Drive purchases; only one model is active under the existing motor. Later Drive upgrades improve minimum-charge launch and recovery while cruise stays at 13 and peak speed stays at 26, preserving M7's movement envelope.
 
-Evolution requires all current upgrades MAX and the full configured cost: **12 Copper → 24 Copper → 30 Iron → 50 Iron + 12 Copper → 40 Quartz → 24 Alloy Core + 20 Quartz → 30 Energy Shard + 12 Alloy Core**. The final Quantum form has no next evolution. Only Copper is earned in the existing region, so **normal M8 progression stops at EVO 3's Iron requirement**. Region eligibility unlocks at EVO 3/5/7; the actual regions and advanced resource sources are deferred to M9.
+Evolution requires all current upgrades MAX and the full configured cost: **12 Copper → 24 Copper → 30 Iron → 50 Iron + 12 Copper → 40 Quartz → 24 Alloy Core + 20 Quartz → 30 Energy Shard + 12 Alloy Core**. The final Quantum form has no next evolution. M9-B supplies every ingredient through the four regions; earlier regions stay accessible for mixed requirements.
 
 Persistence retains the original save path, checksum envelope version 1, Copper, Pocket/Workshop fields, and durable banking receipts. Additive `EvolutionSchema = 1` stores the four advanced balances and purchased advanced-form history. Valid M4/M5 saves migrate in memory without a load-only rewrite. Transactions save before publishing; unsupported or invalid saves stay read-only.
 
@@ -238,21 +240,21 @@ See `Docs/M8-Validation.md` for complete stat/price tables, resource dependencie
 
 ## M8-R rapid run loop
 
-**Tools > DrillRunner > Setup M8-R Rapid Runs** has wired the production balance asset without manual references. Pocket/Workshop use fixed moving drains of 6/9 Energy per second; later forms have their own fixed profiles. Mining costs a form base plus 10% of the original material rate, and BLOCKED costs moving +1. Capacity upgrades extend endurance without increasing rates. Existing charge, progressive HP, hardness, free steering, and Energy-depletion termination remain; there is no run timer or distance cap.
+**Tools > DrillRunner > Setup M8-R Rapid Runs** has wired the production balance asset without manual references. The current M8-R4 asset uses fixed moving drains of 3.35/7.1 Energy per second for Pocket/Workshop; later forms have their own fixed profiles. Mining costs a form base plus 5% of the material's raw rate. Moving, drilling and BLOCKED tuning is snapshotted between attempts. Capacity upgrades extend endurance without increasing rates. Existing charge, progressive HP, hardness, free steering, and Energy-depletion termination remain; there is no run timer or distance cap. M9-B does not change this asset.
 
 Charge now takes 1.1 seconds. Drive improves existing exponential launch coast, with absolute per-form tables that preserve purchased carry on evolution and keep peak speeds at 24/26. First Copper is due within two encounter selections, and guarded choices can appear earlier. Distance Coins and fully destroyed normal-obstacle Coins are retuned for short attempts; all prices and Copper costs remain. Results/Workshop/Retry use the same scene, with same-frame duplicate-start protection and once-only banking.
 
-Run diagnostics are in the existing **RunProgress** Inspector: actual Moving/Drilling/BLOCKED seconds and Energy, plus ending state. The player HUD has no new debug counters. All M8 temporary stage/resource controls remain isolated in memory. See `Docs/M8-R-RapidRunValidation.md` for old/new duration distributions, upgrade measurements, real unfunded journeys, rendered episodes, performance caveats, and four manual checks. Later resource-dependent progression remains unavailable until M9.
+Run diagnostics are in the existing **RunProgress** Inspector: actual Moving/Drilling/BLOCKED seconds and Energy, plus ending state. The player HUD has no new debug counters. All M8 temporary stage/resource controls remain isolated in memory. See `Docs/M8-R-RapidRunValidation.md` for the rapid-loop revision history, measurements and performance caveats; M9-B adds the remaining regional resource sources without changing these operating profiles.
 
 ## Automated verification
 
-Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. All **238 prior M0–M8 cases remain**. Archived PlayMode cases explicitly load historical operating/reward tuning so their original scalar assertions remain intact; the new production suite validates the rapid loop, Energy accounting, eight forms, four policies, adjacent upgrades, route choices, banking/retry, and unfunded progression. Tests use memory or unique OS-temp stores, preserving the actual profile. Current complete-suite results after M8-R4: **196 EditMode / 95 PlayMode passed**, with no failures or skips. See `Docs/M8-R-RapidRunValidation.md` for fixture scope and measurements.
+Unity Test Framework **1.6.0** is already installed. In **Window > General > Test Runner**, run **EditMode > Run All**, then **PlayMode > Run All**. Earlier milestone cases remain; M9-B updates the two later-stage region availability expectations to include the implemented content. Archived PlayMode cases explicitly load historical operating/reward tuning so their original scalar assertions remain intact. Production suites validate Energy accounting, all forms/regions, policies, upgrades, safe routes, banking/retry and unfunded progression. Tests use memory or unique OS-temp stores, preserving the actual profile. Current complete-suite results after M9-B: **234/234 EditMode and 112/112 graphical PlayMode passed**, with no failures or skips. See [M9-B validation](Docs/M9-B-Validation.md) for scope and measurements.
 
 Batch run (close this project in the Editor first; omit `-quit` because the test runner exits when finished):
 
 ```powershell
-& $unityEditor -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -assemblyNames DrillRunner.EditModeTests -testResults Logs/M8R-EditMode.xml -logFile Logs/M8R-EditMode.log
-& $unityEditor -batchmode -projectPath . -runTests -testPlatform PlayMode -assemblyNames DrillRunner.PlayModeTests -testResults Logs/M8R-PlayMode.xml -logFile Logs/M8R-PlayMode.log
+& $unityEditor -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -assemblyNames DrillRunner.EditModeTests -testResults Logs/M9B-EditMode.xml -logFile Logs/M9B-EditMode.log
+& $unityEditor -batchmode -force-d3d11 -projectPath . -runTests -testPlatform PlayMode -assemblyNames DrillRunner.PlayModeTests -testResults Logs/M9B-PlayMode.xml -logFile Logs/M9B-PlayMode.log
 ```
 
 Run those processes sequentially. Graphical tests capture 540 x 960 images under `Logs/`; `-nographics` omits captures. Logs/results are ignored local files. See `Docs/M3-Validation.md` for executed results and minimum QA. Earlier validation reports record the accepted M0–M2 milestones.
@@ -281,3 +283,26 @@ Current Pocket Capacity is **25 / 30 / 35 / 40 / 45 / 55**; Workshop is **90 / 1
 New attempts earn **6 Coins per completed 5 m**. Wood/Brick/Stone remain **25/50/75 Coins**, and fully destroyed Copper Ore remains **3 Copper / 0 Coins**. Prices, Copper/MAX requirements, M8-R3 Capacity and all gameplay/audio/visual tuning are unchanged. Fresh balanced play earns about **97 Coins**, supporting one chosen first purchase. Savings can still fund multiple purchases. Paired fresh journeys evolve in **14 + 14 attempts** for balanced play, **14-15 + 13** for drilling-focused play. The longest no-affordable-upgrade stretch is one attempt. Previously saved balances are never recalculated.
 
 **Tools > DrillRunner > Setup M8-R4 Coin Economy** is applied and idempotent, with no new wiring. Existing Fresh Pocket and temporary-stage QA controls remain isolated from real saves. Complete suites pass **196/196 EditMode and 95/95 graphics-enabled PlayMode**, retaining every earlier case. See the M8-R4 section of `Docs/M8-R-RapidRunValidation.md` for all 12/6/7/8 comparisons, 48 completed fresh journeys, reward/wallet accounting, screenshots, provisional advanced-stage limits and three owner checks. Earlier tables are historical. No commit, push or M9 work.
+
+
+## M9-A regions and Quarry
+
+**Workshop Yard** remains playable from EVO 1 with the accepted M8-R4 settings. **Quarry / Scrapworks** unlocks at EVO 3 and is selected through the compact Workshop region drawer; return to Yard remains available. M9-A established the region infrastructure; M9-B completes the two later regions below. Starting/Retry uses the same motor, streamer, encounter scheduler, reward ledger, Workshop and save.
+
+Quarry adds fixed-hardness **Granite (18, 300 Coins)**, **Metal Plating (26, 600)**, **Reinforced Block (40, 1,000)** and **Iron Ore (18, 6 Iron / 0 Coins)**, fourteen movement-validated patterns and a distinct batched industrial environment. Payouts require full destruction. Distance remains 6 Coins/5 m; all M8 stats/prices, Copper and evolution requirements are unchanged. Iron, Coins and independent regional best distance bank atomically; selection/records extend Version 1 safely without rewriting old saves on load.
+
+Three entirely fresh, unfunded M9-A profiles reached EVO 5 in **48-50 total attempts**: 14 + 14 Yard runs, **9-10** to Heavy Borer, then **11-12** to Hydraulic, including four Yard return trips for Copper. Resource-goal play from fresh middle forms takes **10-11 / 11-13**. Pure avoidance/Ore-only controls are much slower and are documented rather than hidden or compensated by passive rewards. These historical measurements precede M9-B's completed journey.
+
+**Tools > DrillRunner > Setup M9-A Regions and Quarry** is applied, idempotent and needs no manual wiring. Reuse existing fresh/temporary EVO/resource Inspector tools for safe manual QA. The historical M9-A suites passed **217/217 EditMode and 104/104 graphics-enabled PlayMode**, retaining all 196/95 prior cases. All 300 Yard production samples matched M8-R4 exactly. See [M9-A validation](Docs/M9-A-Validation.md) for that checkpoint; current M9-B results are recorded separately.
+
+## M9-B Crystal Refinery and Energy Nexus
+
+**Tools > DrillRunner > Setup M9-B Advanced Regions** extends the existing region assets through Unity Editor APIs. Crystal Refinery unlocks at EVO 5 and offers Quartz and Alloy Core in cyan crystal-processing machinery; Energy Nexus unlocks at EVO 7 with blue reactors/conduits and Energy Shards. Both have fourteen own authored encounters across the existing six categories, early resource lines, movement-aware safe routes and bounded shared decoration. No manual references or extra gameplay controller are needed.
+
+New normal tiers are **Crystal Composite (hardness 50, 400 Coins)** and **Energy Alloy (100, 800 Coins)**. **Quartz Ore (50, 650 HP)** pays 4 Quartz; **Alloy Core (52, 1,800 HP)** pays 3 Alloy Core; **Energy Shard Ore (120, 1,200 HP)** pays 2 Shards. All payouts require complete destruction. Normal obstacles pay only Coins. Yard/Quarry payouts and all progression prices/requirements remain unchanged. Region 3 remains available when Fusion needs additional Alloy Cores for Quantum.
+
+Results show actual mixed resources; Workshop displays contextual balances and all four availability/record rows. All five resources and per-region records bank in the existing atomic transaction. Stable region IDs and the saved profile schema remain unchanged. Temporary Inspector QA profiles continue using memory for selection, purchases, evolution and banking. See [M9-B validation](Docs/M9-B-Validation.md) for executed simulations, tests, captures, limitations and four owner QA checks.
+
+### M9-B-R drilling Energy revision
+
+The applied **Tools > DrillRunner > Apply M9-B-R Refinery Drilling Costs** configuration multiplies active Refinery Composite/Quartz drilling rates by **8** and Core/Energy Alloy by **9**. Power still reduces break time and total mining Energy; Capacity increases the available budget. All HP, hardness, rewards, prices, speeds, travel/BLOCKED consumption and Yard/Quarry/Nexus rates remain unchanged. Balanced EVO 5 base/level-2/MAX medians are **2/3/4** completed objects, with base runs about **16 seconds** and accessible Quartz; EVO 6 base still acquires Core. Three fresh, unfunded journeys reach EVO 8 in **126–132 attempts**, adding **42–130 active seconds** against M9-B, with more retry/menu overhead. See the appended M9-B-R section of [M9-B validation](Docs/M9-B-Validation.md) for paired measurements, per-material Energy, progression tradeoffs, tests and three current owner checks. Earlier M9-B numbers above are historical.

@@ -28,7 +28,7 @@ namespace DrillRunner.Tests.PlayMode
                     var p = flow.Service.Snapshot;
                     rows.Add(string.Join(",", new object[] {family,attempts,flow.Service.ActiveForm.Stage,last.Seconds,last.Distance,earned.Coins,earned.Copper,bought,p.Coins,p.Copper}
                         .Select(v => v is IFormattable f ? f.ToString(null,System.Globalization.CultureInfo.InvariantCulture) : v.ToString())));
-                    File.WriteAllLines("Logs/M8R4-EvolutionJourneys.csv", rows);
+                    File.WriteAllLines("Logs/M9A-M8R4-EvolutionJourneys.csv", rows);
                     Assert.That(last.Seconds, Is.LessThan(36));
                     if (flow.Evolution.Ready) { evolutionAt.Add(attempts); Assert.That(flow.Evolve(), Is.True); yield return new UnityEngine.WaitForSecondsRealtime(1); }
                 }
@@ -64,7 +64,7 @@ namespace DrillRunner.Tests.PlayMode
                     rows.Add(string.Join(",",new object[]{stage,category,level,last.Seconds,last.Distance,time,cost,expectedRate,motor.Energy.Capacity}
                         .Select(v=>v is IFormattable f?f.ToString(null,System.Globalization.CultureInfo.InvariantCulture):v.ToString())));
                     previousTime = last.Seconds; previousDistance = last.Distance; previousDrill = time; previousCost = cost;
-                    File.WriteAllLines("Logs/M8R4-Upgrades.csv", rows); yield return null;
+                    File.WriteAllLines("Logs/M9A-M8R4-Upgrades.csv", rows); yield return null;
                 }
             }
         }

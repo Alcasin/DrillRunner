@@ -27,6 +27,10 @@ namespace DrillRunner
             copperToast = copper; toast.text = "+" + amount + (copper ? " COPPER" : " COIN");
             toast.color = copper ? new Color(0.51f, 0.21f, 0.04f) : new Color(0.03f, 0.45f, 0.45f); toastRemaining = copper ? 1.6f : 1.1f;
         }
+        public void ResourceReward(long amount,string resource)
+        {
+            Reward(amount,true);toast.text="+"+amount+" "+resource;toast.color=new Color(0.18f,0.34f,0.48f);
+        }
         public void ClearToast() { toastRemaining = 0; if (toast != null) { toast.text = ""; toast.rectTransform.localScale = Vector3.one; } }
         private void LateUpdate()
         {

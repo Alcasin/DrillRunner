@@ -13,6 +13,7 @@ namespace DrillRunner
         [SerializeField] private Transform drillTip;
         [SerializeField] private DrillObstacle[] obstacles = Array.Empty<DrillObstacle>();
         private DrillingSettings runSettings;
+        private MaterialDrillingCost[] materialCosts = Array.Empty<MaterialDrillingCost>();
         private bool initializationFailed;
         private readonly List<DrillObstacle> registered = new List<DrillObstacle>(32);
         private const double MaximumStep = 1.0 / 120.0;
@@ -105,13 +106,13 @@ namespace DrillRunner
                         continue;
                     }
                     var target = ContactTarget.Durability;
-                    var drillingRate = DrillingEnergyRate(target.EnergyRate);
+                    var drillingRate = DrillingEnergyRate(target);
                     var duration = Math.Min(seconds, Math.Min(target.TimeToBreak(runSettings.DrillPower, runSettings.DamagePerPower),
                         Energy.TimeUntilEmpty(drillingRate)));
                     target.Drill(runSettings.DrillPower, runSettings.DamagePerPower, duration);
                     Energy.Consume(drillingRate, duration);
 #if UNITY_EDITOR
-                    Diagnostics.Record(RunState.Drilling, duration, drillingRate);
+                    Diagnostics.RecordDrilling(target, duration, drillingRate);
 #endif
                     seconds -= duration;
                     if (Energy.IsEmpty) { FinishRun(); return; }
@@ -212,12 +213,16 @@ namespace DrillRunner
             ContactTarget = null;
             foreach (var obstacle in registered)
                 if (obstacle != null)
+                {
                     obstacle.Restore();
+                    SnapshotMaterialCost(obstacle);
+                }
         }
 
         public void RegisterObstacle(DrillObstacle obstacle)
         {
             if (obstacle == null || registered.Contains(obstacle)) return;
+            SnapshotMaterialCost(obstacle);
             registered.Add(obstacle);
             obstacle.Broken += OnObstacleBroken;
             ObstacleRegistered?.Invoke(obstacle);
@@ -283,6 +288,23 @@ namespace DrillRunner
             DrillRules.NonNegative(materialRate, nameof(materialRate));
             var tuning = runSettings ?? drilling;
             return tuning.DrillingBaseEnergyPerSecond + materialRate * tuning.DrillingMaterialScale;
+        }
+        public float DrillingEnergyRate(ObstacleDurability target)
+        {
+            if(target==null)throw new ArgumentNullException(nameof(target));
+            return DrillingEnergyRate(target.EnergyRate)*target.EnergyMultiplier;
+        }
+        public void ApplyMaterialDrillingCosts(MaterialDrillingCost[] costs)
+        {
+            if(Motion.State!=RunState.Ready&&Motion.State!=RunState.RunEnded)throw new InvalidOperationException("Apply material drilling costs only between runs.");
+            MaterialDrillingCost.Validate(costs);materialCosts=(MaterialDrillingCost[])costs.Clone();
+        }
+        private void SnapshotMaterialCost(DrillObstacle obstacle)
+        {
+            if(obstacle.Durability==null)return;
+            float multiplier=1;
+            foreach(var cost in materialCosts)if(cost.MaterialId==obstacle.Durability.MaterialId){multiplier=cost.Multiplier;break;}
+            obstacle.Durability.ApplyEnergyMultiplier(multiplier);
         }
         public void ApplyConsumption(FormConsumption profile, float chargeSeconds, float boostDecay = 1.8f)
         {

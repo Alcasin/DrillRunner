@@ -57,6 +57,14 @@ namespace DrillRunner
         public float Hardness { get; }
         public float Maximum { get; }
         public float EnergyRate { get; }
+        public string MaterialId { get; }
+        public ObstacleRewardKind RewardKind { get; }
+        public float EnergyMultiplier { get; private set; } = 1;
+        internal void ApplyEnergyMultiplier(float multiplier)
+        {
+            if(!DrillMovementSettings.Finite(multiplier)||multiplier<1||multiplier>30)throw new ArgumentOutOfRangeException(nameof(multiplier));
+            EnergyMultiplier=multiplier; // Consumption snapshot only; never restores HP or changes hardness/rewards.
+        }
         public float Remaining => (float)remaining;
         public float Fraction => (float)(remaining / Maximum);
         public bool IsDestroyed { get; private set; }
@@ -71,6 +79,7 @@ namespace DrillRunner
             Hardness = definition.Hardness;
             Maximum = definition.Durability;
             EnergyRate = definition.DrillingEnergyPerSecond;
+            MaterialId = definition.MaterialId; RewardKind = definition.RewardKind;
             Reset();
         }
 

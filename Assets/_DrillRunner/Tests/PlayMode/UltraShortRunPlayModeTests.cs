@@ -30,7 +30,7 @@ namespace DrillRunner.Tests.PlayMode
             foreach(var p in profiles)foreach(int seed in new[]{1337,904,2026,8101,9201,0,1,7,42,10301})foreach(Policy policy in Enum.GetValues(typeof(Policy)))
             {
                 ConfigureLevels(1,p[0],p[1],p[2],seed);yield return Drive(policy);
-                rows.Add(last.Csv("M8R4")+","+p[0]+","+p[2]);File.WriteAllLines("Logs/M8R4-CapacityAndCombinations.csv",rows);
+                rows.Add(last.Csv("M8R4")+","+p[0]+","+p[2]);File.WriteAllLines("Logs/M9A-M8R4-CapacityAndCombinations.csv",rows);
                 Assert.That(last.Coins,Is.GreaterThanOrEqualTo(flow.Service.ActiveForm.Energy.Costs[0]));
                 if(p[0]==0&&p[2]==0&&policy==Policy.Balanced)
                 {

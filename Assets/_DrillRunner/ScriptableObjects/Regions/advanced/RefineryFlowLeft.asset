@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f468e1128485ffb49ae64c82d8be0f7a, type: 3}
+  m_Name: RefineryFlowLeft
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.EncounterDefinition
+  Section: {fileID: 4881170764207708976, guid: 5eae6cd80c4f366458cce71ed15fcf8a, type: 3}
+  Category: 0
+  Arrangement: 0
+  Intent: 'Refinery: optional mining, independent full-footprint bypass, resource
+    choices and pressure relief.'
+  Pressure: 0
+  MinimumOrdinal: 0
+  EarlyWeight: 3
+  Weight: 3
+  LateWeight: 3
+  BypassX: 2.05

@@ -52,11 +52,12 @@ namespace DrillRunner.Tests.PlayMode
             if (motor.Motion.State != RunState.Moving && motor.Motion.State != RunState.Blocked) return;
             motor.Motion.CancelPointer(); motor.Motion.Press(); motor.Motion.Drag(new Vector2((x - motor.Motion.Position.x) * 540 / 8, 0), 540);
         }
-        private float Rate(DrillObstacle obstacle) => motor.DrillingEnergyRate(obstacle.Definition.DrillingEnergyPerSecond);
+        private float Rate(DrillObstacle obstacle) => motor.DrillingEnergyRate(obstacle.Durability);
         private float Cost(IEnumerable<DrillObstacle> obstacles) => obstacles.Sum(o => o.Durability.Remaining / (motor.DrillPower * motor.Drilling.DamagePerPower) * Rate(o));
         private static bool Aligned(float x, DrillObstacle o) => x >= o.WorldBounds.min.x + 0.08f && x <= o.WorldBounds.max.x - 0.08f;
         private float Choose(Policy policy, bool collectCopper = true)
         {
+            if(track.RegionId==RegionIds.Advanced||track.RegionId==RegionIds.Energy)return ChooseAdvanced(policy,collectCopper);
             var section = track.ActiveSections.FirstOrDefault(s => motor.Motion.Position.z >= s.StartZ && motor.Motion.Position.z < s.EndZ);
             if (section == null) return aim;
             var targets = section.Obstacles.Where(o => o.IsSolid && o.WorldBounds.max.z >= motor.Motion.Position.z - 1.15f).ToArray();
@@ -71,9 +72,9 @@ namespace DrillRunner.Tests.PlayMode
             blockedAt = -1;
             if (motor.Diagnostics.Seconds < decisionAt) return aim;
             float reserve = flow.Balance != null && flow.Balance.Revision >= 5 ? Mathf.Max(1, motor.Drilling.MovingEnergyPerSecond * 0.61f) : 4;
-            if (policy != Policy.Safe && collectCopper && (policy == Policy.Resource || flow.Run.Rewards.Copper < 3))
+            if (policy != Policy.Safe && collectCopper && (policy == Policy.Resource || (track.RegionId==RegionIds.Quarry?flow.Run.Rewards.Iron<12:flow.Run.Rewards.Copper<3)))
             {
-                foreach (var ore in targets.Where(o => o.Definition.RewardKind == ObstacleRewardKind.Copper && o.WorldBounds.min.z < motor.Motion.Position.z + 32))
+                foreach (var ore in targets.Where(o => MaterialDefinition.IsResource(o.Definition.RewardKind) && o.WorldBounds.min.z < motor.Motion.Position.z + 32))
                 {
                     var x = ore.WorldBounds.center.x;
                     var line = targets.Where(o => o.WorldBounds.min.z <= ore.WorldBounds.max.z && EncounterSafety.OverlapsX(x, 0.85f, o.WorldBounds)).ToArray();
@@ -83,11 +84,11 @@ namespace DrillRunner.Tests.PlayMode
                 }
             }
             if (policy != Policy.Safe && policy != Policy.Resource && front != null &&
-                (!collectCopper || flow.Run.Rewards.Copper > 0 || motor.Diagnostics.Destroyed == 0 || policy == Policy.Power))
+                (!collectCopper || (track.RegionId==RegionIds.Quarry?flow.Run.Rewards.Iron>0:flow.Run.Rewards.Copper>0) || motor.Diagnostics.Destroyed == 0 || policy == Policy.Power))
             {
                 var group = targets.Where(o => o.WorldBounds.min.z < front.WorldBounds.min.z + 3).ToArray();
                 var ordered = policy == Policy.Power ? group.OrderByDescending(o => o.Definition.Hardness) : group.OrderBy(o => o.Definition.Hardness);
-                foreach (var target in ordered.Where(o => o.Definition.RewardKind != ObstacleRewardKind.Copper))
+                foreach (var target in ordered.Where(o => !MaterialDefinition.IsResource(o.Definition.RewardKind)))
                 {
                     var x = target.WorldBounds.center.x; var line = group.Where(o => EncounterSafety.OverlapsX(x, 0.85f, o.WorldBounds)).ToArray();
                     if (line.All(o => o.Definition.Hardness <= motor.DrillPower && Aligned(x, o)) && Cost(line) < motor.Energy.Capacity * (policy == Policy.Power ? 0.4f : 0.18f) && Cost(line) + reserve < motor.Energy.Remaining) return x;
@@ -106,20 +107,20 @@ namespace DrillRunner.Tests.PlayMode
             public int Stage, Level, Seed, Destroyed, Contacts, CopperOpportunities, Approached;
             public string Policy;
             public double Seconds, Moving, Drilling, Blocked, MoveEnergy, DrillEnergy, BlockEnergy, OpenSeconds, Distance, FirstContact;
-            public long Coins, Copper, DistanceCoins, ObstacleCoins;
-            public const string Header = "mode,stage,level,seed,policy,seconds,movingSeconds,drillingSeconds,blockedSeconds,movingEnergy,drillingEnergy,blockedEnergy,openSeconds,distance,coins,copper,destroyed,contacts,copperOpportunities,firstContact,ending,approached,distanceCoins,obstacleCoins";
-            public string Csv(string mode) => string.Join(",", new object[] {mode,Stage,Level,Seed,Policy,Seconds,Moving,Drilling,Blocked,MoveEnergy,DrillEnergy,BlockEnergy,OpenSeconds,Distance,Coins,Copper,Destroyed,Contacts,CopperOpportunities,FirstContact,"EnergyEmpty",Approached,DistanceCoins,ObstacleCoins}
+            public long Coins, Copper, Iron, DistanceCoins, ObstacleCoins;
+            public const string Header = "mode,stage,level,seed,policy,seconds,movingSeconds,drillingSeconds,blockedSeconds,movingEnergy,drillingEnergy,blockedEnergy,openSeconds,distance,coins,copper,destroyed,contacts,copperOpportunities,firstContact,ending,approached,distanceCoins,obstacleCoins,iron";
+            public string Csv(string mode) => string.Join(",", new object[] {mode,Stage,Level,Seed,Policy,Seconds,Moving,Drilling,Blocked,MoveEnergy,DrillEnergy,BlockEnergy,OpenSeconds,Distance,Coins,Copper,Destroyed,Contacts,CopperOpportunities,FirstContact,"EnergyEmpty",Approached,DistanceCoins,ObstacleCoins,Iron}
                 .Select(v => v is IFormattable f ? f.ToString(null, CultureInfo.InvariantCulture) : v.ToString()));
         }
         private Sample last;
-        private IEnumerator Drive(Policy policy, bool collectCopper = true, float dt = 0.05f)
+        private IEnumerator Drive(Policy policy, bool collectCopper = true, float dt = 0.05f, bool alreadyLaunched = false)
         {
             var opportunities = new HashSet<DrillObstacle>(); var approached = new HashSet<DrillObstacle>(); var open = 0.0; var ticks = 0;
-            Launch();
+            if(!alreadyLaunched)Launch();
             while (motor.Motion.State != RunState.RunEnded && ticks++ < 150000)
             {
                 var section = track.ActiveSections.FirstOrDefault(s => motor.Motion.Position.z >= s.StartZ && motor.Motion.Position.z < s.EndZ);
-                foreach (var ore in track.ActiveSections.SelectMany(s => s.Obstacles).Where(o => o.Definition.RewardKind == ObstacleRewardKind.Copper &&
+                foreach (var ore in track.ActiveSections.SelectMany(s => s.Obstacles).Where(o => MaterialDefinition.IsResource(o.Definition.RewardKind) &&
                     o.WorldBounds.min.z >= motor.Motion.Position.z - 1.85f && o.WorldBounds.min.z <= motor.Motion.Position.z + 30)) opportunities.Add(ore);
                 foreach (var target in motor.RegisteredObstacles)
                     if (target != null && target.gameObject.activeInHierarchy && target.WorldBounds.max.z >= motor.Motion.Position.z - 1.85f &&
@@ -136,7 +137,7 @@ namespace DrillRunner.Tests.PlayMode
             last = new Sample { Stage = flow.Service.ActiveForm.Stage, Level = flow.Service.Snapshot.Level(UpgradeCategory.EnergyCapacity), Seed = flow.Run.Rewards.Seed, Policy = policy.ToString(),
                 Seconds = m.Seconds, Moving = m.MovingSeconds, Drilling = m.DrillingSeconds, Blocked = m.BlockedSeconds, MoveEnergy = m.MovingEnergy,
                 DrillEnergy = m.DrillingEnergy, BlockEnergy = m.BlockedEnergy, OpenSeconds = open, Distance = flow.Run.Rewards.Distance, Coins = flow.Run.Rewards.Coins,
-                Copper = flow.Run.Rewards.Copper, DistanceCoins = flow.Run.Rewards.DistanceCoins, ObstacleCoins = flow.Run.Rewards.ObstacleCoins, Destroyed = m.Destroyed, Contacts = m.Contacts, CopperOpportunities = opportunities.Count, Approached = approached.Count, FirstContact = m.FirstContactSeconds };
+                Copper = flow.Run.Rewards.Copper, Iron = flow.Run.Rewards.Iron, DistanceCoins = flow.Run.Rewards.DistanceCoins, ObstacleCoins = flow.Run.Rewards.ObstacleCoins, Destroyed = m.Destroyed, Contacts = m.Contacts, CopperOpportunities = opportunities.Count, Approached = approached.Count, FirstContact = m.FirstContactSeconds };
         }
         [UnityTest] public IEnumerator InstrumentTheOriginalM8RunDurationAtBaseAndMaximumPocketAndWorkshop()
         {
@@ -153,7 +154,7 @@ namespace DrillRunner.Tests.PlayMode
             foreach (var stage in new[] {1,2}) foreach (var level in new[] {0,5}) foreach (var seed in new[] {1337,904,2026}) foreach (Policy policy in Enum.GetValues(typeof(Policy)))
             {
                 Configure(stage, level, seed); yield return Drive(policy, true, 0.1f); rows.Add(last.Csv("M8"));
-                File.WriteAllLines("Logs/M8R4-OriginalBaseline.csv", rows); yield return null;
+                File.WriteAllLines("Logs/M9A-M8R4-OriginalBaseline.csv", rows); yield return null;
             }
         }
         [UnityTest] public IEnumerator ProductionShortRunDistributionsCoverEightFormsAndFourPolicies()
@@ -164,7 +165,7 @@ namespace DrillRunner.Tests.PlayMode
             {
                 Configure(profile[0], profile[1], seed); yield return Drive(policy); rows.Add(last.Csv("M8R4"));
                 Assert.That(last.Seconds, Is.LessThan(36)); Assert.That(last.Seconds, Is.GreaterThan(profile[0] == 1 && profile[1] == 0 ? 6.5 : 8));
-                File.WriteAllLines("Logs/M8R4-Policies.csv", rows); yield return null;
+                File.WriteAllLines("Logs/M9A-M8R4-Policies.csv", rows); yield return null;
             }
         }
     }

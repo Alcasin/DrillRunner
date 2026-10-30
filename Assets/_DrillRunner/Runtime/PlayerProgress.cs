@@ -19,10 +19,22 @@ namespace DrillRunner
         public int EvolutionSchema;
         public long Iron, Quartz, AlloyCore, EnergyShard;
         public FormUpgradeRecord[] AdvancedForms = Array.Empty<FormUpgradeRecord>();
+        // Additive extension: absent fields mean the original Workshop Yard profile. No rewrite on load.
+        public int RegionSchema;
+        public string SelectedRegionId;
+        public RegionDistanceRecord[] RegionRecords = Array.Empty<RegionDistanceRecord>();
+        public string SelectedRegion => string.IsNullOrEmpty(SelectedRegionId) ? RegionIds.Yard : SelectedRegionId;
+        public double BestDistance(string id) { foreach(var r in RegionRecords ?? Array.Empty<RegionDistanceRecord>()) if(r.RegionId==id)return r.Distance;return 0; }
+        internal void SelectRegion(string id) { RegionSchema=1;SelectedRegionId=id;RegionRecords=RegionRecords??Array.Empty<RegionDistanceRecord>(); }
+        internal void RecordDistance(string id,double distance)
+        {
+            SelectRegion(SelectedRegion);foreach(var r in RegionRecords)if(r.RegionId==id){r.Distance=Math.Max(r.Distance,distance);return;}
+            var records=new RegionDistanceRecord[RegionRecords.Length+1];Array.Copy(RegionRecords,records,RegionRecords.Length);records[records.Length-1]=new RegionDistanceRecord{RegionId=id,Distance=distance};RegionRecords=records;
+        }
         public PlayerProgress Copy()
         {
             var copy = (PlayerProgress)MemberwiseClone();
-            copy.AdvancedForms = AdvancedForms == null ? null : Array.ConvertAll(AdvancedForms, r => r?.Copy()); return copy;
+            copy.AdvancedForms = AdvancedForms == null ? null : Array.ConvertAll(AdvancedForms, r => r?.Copy()); copy.RegionRecords = RegionRecords == null ? null : Array.ConvertAll(RegionRecords, r => r?.Copy()); return copy;
         }
         public long Resource(EvolutionResource resource)
         {
@@ -105,6 +117,11 @@ namespace DrillRunner
         public void Validate(ProgressionConfig config)
         {
             var active = config.ForForm(FormId); var stage = active.Stage;
+            var regional=RegionRecords??Array.Empty<RegionDistanceRecord>();
+            if(RegionSchema<0 || RegionSchema>1 || (RegionSchema==0 && (!string.IsNullOrEmpty(SelectedRegionId)||regional.Length>0)) ||
+                (RegionSchema==1 && (string.IsNullOrEmpty(SelectedRegionId)||RegionIds.UnlockStage(SelectedRegionId)>stage)) || regional.Length>4) throw new ArgumentException("Invalid regional save metadata; original save preserved.");
+            var regionIds=new System.Collections.Generic.HashSet<string>();foreach(var r in regional)
+                if(r==null||!regionIds.Add(r.RegionId)||!RegionIds.Implemented(r.RegionId)||double.IsNaN(r.Distance)||double.IsInfinity(r.Distance)||r.Distance<0)throw new ArgumentException("Invalid region record; original save preserved.");
             if (Version != 1 || stage == 0 ||
                 FormSchema < 0 || FormSchema > 1 || !Guid.TryParseExact(ProfileId, "N", out _) ||
                 Coins < 0 || Copper < 0 || Revision < 0 || IssuedAttempt < 0 || BankedAttempt < 0 || BankedAttempt > IssuedAttempt ||

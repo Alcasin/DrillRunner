@@ -59,7 +59,7 @@ namespace DrillRunner
                 // Every Ore has its own constant-X approach, including any guard, at starting Power.
                 foreach (var ore in placements)
                 {
-                    if (ore.Reward != ObstacleRewardKind.Copper) continue;
+                    if (!MaterialDefinition.IsResource(ore.Reward)) continue;
                     var x = ore.Bounds.center.x;
                     var energy = 0f;
                     if (Mathf.Abs(x) > limit) { reason = "Ore center is outside the steering envelope."; return false; }

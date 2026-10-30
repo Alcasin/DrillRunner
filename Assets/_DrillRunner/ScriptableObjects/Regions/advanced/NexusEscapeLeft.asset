@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f468e1128485ffb49ae64c82d8be0f7a, type: 3}
+  m_Name: NexusEscapeLeft
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.EncounterDefinition
+  Section: {fileID: 4909588926100284027, guid: e260c4a333a59db40bf6e3ae56faa94b, type: 3}
+  Category: 3
+  Arrangement: 4
+  Intent: 'Nexus: optional mining, independent full-footprint bypass, resource choices
+    and pressure relief.'
+  Pressure: 2
+  MinimumOrdinal: 1
+  EarlyWeight: 3
+  Weight: 3
+  LateWeight: 3
+  BypassX: 2.05

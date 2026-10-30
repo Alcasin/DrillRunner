@@ -26,7 +26,7 @@ namespace DrillRunner.Tests.PlayMode
                     {
                         ConfigureLevels(stage,0,cap,0,seed);yield return Drive(policy);
                         rows.Add(last.Csv(version==0?"M8R2":"M8R3")+",0,0,CapacityOnly");
-                        File.WriteAllLines("Logs/M8R4-PairedCapacity.csv",rows);
+                        File.WriteAllLines("Logs/M9A-M8R4-PairedCapacity.csv",rows);
                         if(version==1&&policy==Policy.Balanced)median[stage-1,cap].Add(last.Seconds);
                         yield return null;
                     }
@@ -34,7 +34,7 @@ namespace DrillRunner.Tests.PlayMode
                     {
                         ConfigureLevels(1,3,3,drive,seed);yield return Drive(policy);
                         rows.Add(last.Csv(version==0?"M8R2":"M8R3")+",3,"+drive+",OwnerLike");
-                        File.WriteAllLines("Logs/M8R4-PairedCapacity.csv",rows);yield return null;
+                        File.WriteAllLines("Logs/M9A-M8R4-PairedCapacity.csv",rows);yield return null;
                     }
                 }
                 double[][] pocket={new[]{7d,9},new[]{8d,10},new[]{10d,12},new[]{12d,14},new[]{13d,16},new[]{15d,19}};

@@ -55,7 +55,7 @@ namespace DrillRunner.Tests.PlayMode
                     Assert.That(last.ObstacleCoins, Is.EqualTo(previous.ObstacleCoins)); Assert.That(last.Copper, Is.EqualTo(previous.Copper));
                 }
                 rows.Add(last.Csv("M8R4-Candidate") + EconomyCsv("",rate,p[1],p[3]));
-                File.WriteAllLines("Logs/M8R4-EconomyCandidates.csv",rows); yield return null;
+                File.WriteAllLines("Logs/M9A-M8R4-EconomyCandidates.csv",rows); yield return null;
             }
         }
         [UnityTest, Timeout(600000)] public IEnumerator FreshEconomyCandidateJourneysMeasureAffordabilitySavingsAndBothEvolutions()
@@ -87,7 +87,7 @@ namespace DrillRunner.Tests.PlayMode
                     if(evolved){Assert.That(max&&copper,Is.True);Assert.That(flow.Evolve(),Is.True);yield return new WaitForSecondsRealtime(1);}
                     rows.Add(EconomyCsv(rate,family,strategy,actual,attempt,form.Stage,before.Level(UpgradeCategory.DrillPower),before.Level(UpgradeCategory.EnergyCapacity),before.Level(UpgradeCategory.DrivePower),
                         last.Seconds,last.Distance,last.DistanceCoins,last.ObstacleCoins,last.Coins,last.Copper,last.DrillEnergy,before.Coins,banked,affordable,bought,banked-after.Coins,after.Coins,after.Copper,max,copper,evolved,flow.Service.Snapshot.Coins,flow.Service.Snapshot.Copper));
-                    File.WriteAllLines("Logs/M8R4-EconomyJourneys.csv",rows);
+                    File.WriteAllLines("Logs/M9A-M8R4-EconomyJourneys.csv",rows);
                     yield return null;
                 }
                 Assert.That(flow.Service.ActiveForm.Stage,Is.EqualTo(3),EconomyCsv(rate,family,strategy));

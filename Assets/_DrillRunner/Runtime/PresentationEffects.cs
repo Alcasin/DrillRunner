@@ -13,6 +13,8 @@ namespace DrillRunner
         public int BurstCount { get; private set; }
         public int SystemCount => bursts.Length + 1;
         public int CopperResponses { get; private set; }
+        public int IronResponses { get; private set; }
+        public int AdvancedResponses { get; private set; }
         public int ParticleCount
         {
             get { var count = contact.particleCount; foreach (var burst in bursts) count += burst.particleCount; return count; }
@@ -54,10 +56,10 @@ namespace DrillRunner
                 };
                 // Reward glints use the same bounded burst, only after the ledger confirms Copper.
                 if (confirmedCopper && i >= 16)
-                { emit.velocity = new Vector3(Mathf.Cos(angle) * 0.8f, 2.8f, -0.8f); emit.startColor = new Color(1, 0.84f, 0.4f); emit.startSize3D = new Vector3(0.09f, 0.42f, 0.09f); }
+                { emit.velocity = new Vector3(Mathf.Cos(angle) * 0.8f, 2.8f, -0.8f); emit.startColor = materialId=="copper_ore"?new Color(1,0.84f,0.4f):Color.Lerp(theme.MaterialColor(materialId),Color.white,0.4f); emit.startSize3D = new Vector3(0.09f, 0.42f, 0.09f); }
                 burst.Emit(emit, 1);
             }
-            if (confirmedCopper) CopperResponses++;
+            if (confirmedCopper) {if(materialId=="iron_ore")IronResponses++;else if(materialId=="copper_ore")CopperResponses++;else AdvancedResponses++;}
             BurstCount++;
         }
         public void StopAll()

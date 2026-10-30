@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d8b9c12e6c844b4495b6da844764eed, type: 3}
+  m_Name: workshop_yard
+  m_EditorClassIdentifier: DrillRunner.Runtime::DrillRunner.RegionDefinition
+  Id: workshop_yard
+  DisplayName: Workshop Yard
+  Identity: 
+  UnlockStage: 1
+  Implemented: 1
+  Track: {fileID: 11400000, guid: b7a645e113e2b954d9088c8c0871b3cd, type: 2}
+  Encounters: {fileID: 11400000, guid: 40ee36f45b41e2343b1f11d9b220dc0b, type: 2}
+  Introduction: {fileID: 1350067005110292715, guid: c346c03edc7bbb54aaa4091320fec25b, type: 3}
+  Environment: {fileID: 0}
+  Materials: []
+  Resources: 00000000
+  Sky: {r: 0.69, g: 0.75, b: 0.76, a: 1}
