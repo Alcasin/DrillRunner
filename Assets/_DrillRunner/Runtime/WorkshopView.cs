@@ -23,6 +23,7 @@ namespace DrillRunner
         [SerializeField] private float workshopSaveTop = 846;
         private string previousMessage;
         private bool previousCompleted;
+        private readonly int[] lastPurchaseFrames = {-1, -1, -1};
         public GameObject Panel => panel;
         public Text Balance => balance;
         public Text Status => status;
@@ -50,9 +51,16 @@ namespace DrillRunner
             startRun.onClick.RemoveListener(StartAttempt); openWorkshop.onClick.RemoveListener(Open); retrySave.onClick.RemoveListener(Save);
             if (evolve != null) evolve.onClick.RemoveListener(Evolve);
         }
-        private void BuyPower() => controller.Purchase(UpgradeCategory.DrillPower);
-        private void BuyEnergy() => controller.Purchase(UpgradeCategory.EnergyCapacity);
-        private void BuyDrive() => controller.Purchase(UpgradeCategory.DrivePower);
+        private void BuyPower() => Buy(0);
+        private void BuyEnergy() => Buy(1);
+        private void BuyDrive() => Buy(2);
+        private void Buy(int index)
+        {
+            // Match Start Run's UI callback guard. Separate cards and later-frame purchases remain independent.
+            if (lastPurchaseFrames[index] == Time.frameCount) return;
+            lastPurchaseFrames[index] = Time.frameCount;
+            controller.Purchase((UpgradeCategory)index);
+        }
         private void StartAttempt() => controller.StartRunFromUi();
         private void Open() => controller.OpenWorkshop();
         private void Save() => controller.RetryBank();
@@ -123,8 +131,9 @@ namespace DrillRunner
                 }
             }
             if (formPreview != null) formPreview.texture = config.PreviewImage;
-            if (requirements != null) { requirements.fontSize = config.NextForm != null && config.RequiredResources.Length > 1 ? 14 : 16; requirements.text = controller.Evolution.Description; }
-            if (evolve != null) { evolve.gameObject.SetActive(controller.Evolution.HasNext); evolve.interactable = controller.Evolution.Ready; }
+            var eligibility = controller.Evolution; // One authoritative evaluation per refresh, shared by text and button.
+            if (requirements != null) { requirements.fontSize = config.NextForm != null && config.RequiredResources.Length > 1 ? 14 : 16; requirements.text = EvolutionText(eligibility, config, profile, controller.Regions); }
+            if (evolve != null) { evolve.gameObject.SetActive(eligibility.HasNext); evolve.interactable = eligibility.Ready; }
             for (var i = 0; i < 3; i++)
             {
                 var category = (UpgradeCategory)i; var table = config.Table(category); var level = profile.Level(category); var max = level == table.MaximumLevel;
@@ -148,6 +157,26 @@ namespace DrillRunner
                 prices[i].text = max ? "MAX" : "UPGRADE  ·  " + table.Costs[level] + " COINS";
                 purchase[i].interactable = controller.CanPurchase && !max && profile.Coins >= table.Costs[level];
             }
+        }
+        internal static string EvolutionText(EvolutionEligibility eligibility, ProgressionConfig config, PlayerProgress profile, RegionCatalog regions)
+        {
+            if (regions == null || !eligibility.HasNext || eligibility.Ready || !eligibility.Allowed || eligibility.ResourcesAvailable ||
+                !eligibility.PowerComplete || !eligibility.EnergyComplete || !eligibility.DriveComplete) return eligibility.Description;
+            // Reuse the authored source/unlock catalog; guide one missing ingredient without adding another text row.
+            foreach (var region in regions.Regions)
+            {
+                if (!region.CanPlay(config.Stage)) continue;
+                foreach (var cost in config.RequiredResources)
+                {
+                    long missing = cost.Amount - profile.Resource(cost.Resource);
+                    if (missing <= 0) continue;
+                    foreach (var resource in region.Resources)
+                        if (resource == cost.Resource)
+                            return eligibility.Description.Substring(0, eligibility.Description.LastIndexOf('\n') + 1) +
+                                "COLLECT " + missing + " " + ResourceCost.Name(resource) + " → " + region.DisplayName;
+                }
+            }
+            return eligibility.Description;
         }
     }
 }
